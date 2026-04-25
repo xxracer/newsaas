@@ -20,7 +20,8 @@
       "mcp__ide__executeCode",
       "Bash(python3 *)",
       "Bash(curl -s http://localhost:9002/studio/setup)",
-      "Bash(curl *)"
+      "Bash(curl *)",
+      "Bash(git mv *)"
     ]
   }
 }

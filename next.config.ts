@@ -1,10 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    // Fix for Next.js 15.5 bug with route groups in Vercel
-    // See: https://github.com/vercel/next.js/issues/71572
-    serverSourceMaps: false,
+  async rewrites() {
+    return {
+      beforeFiles: [
+        // Public site pages (formerly in (main) route group)
+        { source: '/about', destination: '/site/about' },
+        { source: '/services', destination: '/site/services' },
+        { source: '/book', destination: '/site/book' },
+        { source: '/schedule', destination: '/site/schedule' },
+        { source: '/specials', destination: '/site/specials' },
+        { source: '/training', destination: '/site/training' },
+      ],
+    };
   },
   images: {
     remotePatterns: [
