@@ -22,7 +22,7 @@ export function middleware(request: NextRequest) {
   ];
 
   // Check if this is a custom studio domain
-  const isMainDomain = mainDomains.includes(domain);
+  const isMainDomain = mainDomains.includes(domain) || domain.endsWith('.vercel.app');
 
   // Get the pathname
   const { pathname } = request.nextUrl;
