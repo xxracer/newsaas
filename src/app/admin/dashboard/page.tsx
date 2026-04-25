@@ -57,7 +57,7 @@ export default function AdminDashboard() {
 
         // Check if studio has been fully set up
         if (!studioData.businessName) {
-          setHasStudio(true);
+          setHasStudio(false);
           setStats(null);
           setIsLoading(false);
           return;

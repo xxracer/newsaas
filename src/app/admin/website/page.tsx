@@ -37,6 +37,8 @@ import {
   Phone,
   Instagram,
   Image as ImageIcon,
+  Trash2,
+  Settings,
 } from 'lucide-react';
 import Link from 'next/link';
 import { getBusinessType } from '@/lib/business-types';
@@ -221,11 +223,19 @@ export default function WebsitePagesPage() {
   const { theme } = useTheme();
   const [businessType, setBusinessType] = useState<string>('waxing');
   const [pages, setPages] = useState<StudioPage[]>(() => getDefaultPages('waxing'));
-  const [selectedPageId, setSelectedPageId] = useState<string>('home');
+  const [selectedPageId, setSelectedPageId] = useState('home');
+  const [editingSection, setEditingSection] = useState<{pageId: string, section: PageSection} | null>(null);
   const [showAddPageDialog, setShowAddPageDialog] = useState(false);
   const [newPageName, setNewPageName] = useState('');
   const [newPageSlug, setNewPageSlug] = useState('');
+
+  const [studioColors, setStudioColors] = useState({
+    primary: '#f43f5e',
+    background: '#ffffff',
+    text: '#111827'
+  });
   const [activeTab, setActiveTab] = useState('pages');
+  const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
 
   useEffect(() => {
     if (user?.studioId) {
@@ -239,18 +249,23 @@ export default function WebsitePagesPage() {
         } else {
           setPages(getDefaultPages(bt));
         }
+        if (data.colors) {
+          setStudioColors(data.colors);
+        }
       }
+      setIsInitialLoadDone(true);
     }
   }, [user?.studioId]);
 
   useEffect(() => {
-    if (user?.studioId) {
+    if (user?.studioId && isInitialLoadDone) {
       const stored = localStorage.getItem('mock_studio_' + user.studioId);
       const data = stored ? JSON.parse(stored) : {};
       data.website = { pages };
+      data.colors = studioColors;
       localStorage.setItem('mock_studio_' + user.studioId, JSON.stringify(data));
     }
-  }, [pages, user?.studioId]);
+  }, [pages, studioColors, user?.studioId, isInitialLoadDone]);
 
   const handleTogglePage = (pageId: string) => {
     setPages(pages.map(p =>
@@ -268,6 +283,17 @@ export default function WebsitePagesPage() {
         )
       };
     }));
+  };
+
+  const handleUpdateSection = (pageId: string, sectionId: string, updates: Partial<PageSection>) => {
+    setPages(pages.map(p => {
+      if (p.id !== pageId) return p;
+      return {
+        ...p,
+        sections: p.sections.map(s => s.id === sectionId ? { ...s, ...updates } : s)
+      };
+    }));
+    setEditingSection(null);
   };
 
   const handleAddPage = () => {
@@ -366,7 +392,7 @@ export default function WebsitePagesPage() {
                   return (
                     <Card
                       key={page.id}
-                      className={`cursor-pointer transition-all border ${
+                      className={`cursor-pointer transition-all border group ${
                         isSelected ? 'border-rose-300 ring-1 ring-rose-300' : 'border-gray-200 hover:border-gray-300'
                       }`}
                       onClick={() => setSelectedPageId(page.id)}
@@ -398,6 +424,24 @@ export default function WebsitePagesPage() {
                               >
                                 <ChevronDown className="w-4 h-4" />
                               </button>
+                            </div>
+
+                            {/* Page Actions */}
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="ghost" size="icon" className="w-8 h-8">
+                                <Settings className="w-4 h-4 text-gray-400" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="w-8 h-8 text-rose-300 hover:text-rose-500 hover:bg-rose-50"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPages(pages.filter(p => p.id !== page.id));
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
                             </div>
 
                             {/* Status Badge */}
@@ -447,7 +491,11 @@ export default function WebsitePagesPage() {
                     {selectedPage.sections.map((section) => {
                       const isEnabled = section.enabled !== false;
                       return (
-                        <div key={section.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                        <div 
+                          key={section.id} 
+                          className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100 cursor-pointer group"
+                          onClick={() => setEditingSection({ pageId: selectedPage.id, section })}
+                        >
                           <div className="flex items-center gap-3">
                             <div className={`w-8 h-8 rounded-md flex items-center justify-center ${isEnabled ? 'bg-rose-100 text-rose-600' : 'bg-gray-100 text-gray-400'}`}>
                               {isEnabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -458,11 +506,19 @@ export default function WebsitePagesPage() {
                               </span>
                             </div>
                           </div>
-                          <Switch
-                            checked={isEnabled}
-                            onCheckedChange={() => handleToggleSection(selectedPage.id, section.id)}
-                            className="data-[state=checked]:bg-rose-500"
-                          />
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Settings className="w-4 h-4 text-gray-400" />
+                            </Button>
+                            <Switch
+                              checked={isEnabled}
+                              onCheckedChange={(checked) => {
+                                handleToggleSection(selectedPage.id, section.id);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="data-[state=checked]:bg-rose-500"
+                            />
+                          </div>
                         </div>
                       );
                     })}
@@ -521,17 +577,60 @@ export default function WebsitePagesPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-lg border border-rose-100">
-                  <div>
-                    <p className="font-semibold text-gray-900">Rose Gold Elegance</p>
-                    <p className="text-sm text-gray-500">Dorado rosado, mármol y tipografía serif</p>
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-rose-50 to-pink-50 rounded-lg border border-rose-100 mb-6">
+                    <div>
+                      <p className="font-semibold text-gray-900">Rose Gold Elegance</p>
+                      <p className="text-sm text-gray-500">Dorado rosado, mármol y tipografía serif</p>
+                    </div>
+                    <Link href="/admin/settings/theme">
+                      <Button variant="outline" className="gap-2 rounded-full bg-white">
+                        <Palette className="w-4 h-4" />
+                        Cambiar Tema
+                      </Button>
+                    </Link>
                   </div>
-                  <Link href="/admin/settings/theme">
-                    <Button variant="outline" className="gap-2 rounded-full">
-                      <Palette className="w-4 h-4" />
-                      Cambiar Tema
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-3">
+                      <Label>Color Principal</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          type="color" 
+                          value={studioColors.primary} 
+                          onChange={(e) => setStudioColors({ ...studioColors, primary: e.target.value })}
+                          className="w-12 h-10 p-1 rounded-md"
+                        />
+                        <Input 
+                          value={studioColors.primary} 
+                          onChange={(e) => setStudioColors({ ...studioColors, primary: e.target.value })}
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <Label>Color de Fondo</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          type="color" 
+                          value={studioColors.background} 
+                          onChange={(e) => setStudioColors({ ...studioColors, background: e.target.value })}
+                          className="w-12 h-10 p-1 rounded-md"
+                        />
+                        <Input 
+                          value={studioColors.background} 
+                          onChange={(e) => setStudioColors({ ...studioColors, background: e.target.value })}
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <Button className="w-full bg-rose-500 hover:bg-rose-600 rounded-full">
+                      Guardar Cambios de Apariencia
                     </Button>
-                  </Link>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -578,6 +677,43 @@ export default function WebsitePagesPage() {
             </Button>
             <Button onClick={handleAddPage} className="bg-rose-500 hover:bg-rose-600">
               Crear Página
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Section Dialog */}
+      <Dialog open={!!editingSection} onOpenChange={(open) => !open && setEditingSection(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Sección: {editingSection?.section.name}</DialogTitle>
+            <DialogDescription>
+              Personaliza el contenido y comportamiento de esta sección.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Título de la Sección</Label>
+              <Input defaultValue={editingSection?.section.name} />
+            </div>
+            <div className="space-y-2">
+              <Label>Subtítulo / Descripción</Label>
+              <Input placeholder="Opcional..." />
+            </div>
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div className="space-y-0.5">
+                <Label>Visibilidad en Móvil</Label>
+                <p className="text-xs text-gray-500">Mostrar esta sección en dispositivos móviles</p>
+              </div>
+              <Switch defaultChecked />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingSection(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={() => setEditingSection(null)} className="bg-rose-500 hover:bg-rose-600">
+              Guardar Cambios
             </Button>
           </DialogFooter>
         </DialogContent>
