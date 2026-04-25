@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMockAuth } from '@/components/providers/MockAuthProvider';
 import { THEME_COLORS, LuxuryThemeId, DEFAULT_PAGES } from '@/lib/firebase-mock';
 import { BUSINESS_TYPES, getBusinessType } from '@/lib/business-types';
 import { getThemesForBusinessType, getDefaultThemeIdForBusinessType, getThemeById, NicheTheme } from '@/lib/themes';
@@ -16,6 +17,7 @@ type SetupStep = 'business' | 'business-type' | 'theme' | 'domain' | 'complete';
 
 export default function StudioSetupPage() {
   const router = useRouter();
+  const { refreshUser } = useMockAuth();
 
   const [currentStep, setCurrentStep] = useState<SetupStep>('business-type');
   const [isLoading, setIsLoading] = useState(false);
@@ -81,6 +83,14 @@ export default function StudioSetupPage() {
       localStorage.setItem('mock_studio_' + mockStudioId, JSON.stringify(studioData));
       localStorage.setItem('mock_user_studio_id', mockStudioId);
       localStorage.setItem('waxing-studio-theme', formData.theme);
+
+      const storedUser = localStorage.getItem('mock_user');
+      if (storedUser) {
+        const userObj = JSON.parse(storedUser);
+        userObj.studioId = mockStudioId;
+        localStorage.setItem('mock_user', JSON.stringify(userObj));
+        refreshUser();
+      }
 
       setStudioId(mockStudioId);
       setCurrentStep('theme');

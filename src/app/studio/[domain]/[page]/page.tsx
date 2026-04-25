@@ -39,6 +39,9 @@ interface StudioData {
   instagram?: string;
   facebook?: string;
   pages?: any[];
+  website?: {
+    pages: any[];
+  };
 }
 
 interface PageParams {
@@ -160,6 +163,14 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
 
   // Get enabled pages for navigation
   const enabledPages = studio?.pages?.filter(p => p.enabled) || DEFAULT_PAGES.filter(p => p.enabled);
+  const fullPages = studio?.website?.pages || [];
+  const currentPageData = fullPages.find((p: any) => p.id === currentPage);
+
+  const isSectionEnabled = (sectionId: string) => {
+    if (!currentPageData || !currentPageData.sections) return true;
+    const section = currentPageData.sections.find((s: any) => s.id === sectionId);
+    return section ? section.enabled !== false : true;
+  };
 
   const renderPageContent = () => {
     switch (currentPage) {
@@ -167,8 +178,9 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
         return (
           <>
             {/* Hero Section */}
-            <section
-              className="relative py-20 md:py-32 overflow-hidden"
+            {isSectionEnabled('hero') && (
+              <section
+                className="relative py-20 md:py-32 overflow-hidden"
               style={{
                 background: `linear-gradient(135deg, ${colors?.background} 0%, ${colors?.secondary} 100%)`
               }}
@@ -212,9 +224,11 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                 </div>
               </div>
             </section>
+            )}
 
             {/* Services Preview */}
-            <section id="services" className="py-20" style={{ backgroundColor: colors?.surface }}>
+            {isSectionEnabled('servicesGrid') && (
+              <section id="services" className="py-20" style={{ backgroundColor: colors?.surface }}>
               <div className="container mx-auto px-4">
                 <div className="text-center mb-12">
                   <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4" style={{ color: colors?.text }}>
@@ -254,12 +268,14 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                       </CardContent>
                     </Card>
                   ))}
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
+            )}
 
             {/* Testimonials Section */}
-            <section id="testimonials" className="py-20" style={{ backgroundColor: colors?.background }}>
+            {isSectionEnabled('testimonials') && (
+              <section id="testimonials" className="py-20" style={{ backgroundColor: colors?.background }}>
               <div className="container mx-auto px-4">
                 <div className="text-center mb-12">
                   <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4" style={{ color: colors?.text }}>
@@ -292,6 +308,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                 </div>
               </div>
             </section>
+            )}
           </>
         );
 

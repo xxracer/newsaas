@@ -61,6 +61,7 @@ const iconMap: Record<string, any> = {
 interface PageSection {
   id: string;
   name: string;
+  enabled?: boolean;
 }
 
 interface StudioPage {
@@ -257,6 +258,18 @@ export default function WebsitePagesPage() {
     ));
   };
 
+  const handleToggleSection = (pageId: string, sectionId: string) => {
+    setPages(pages.map(p => {
+      if (p.id !== pageId) return p;
+      return {
+        ...p,
+        sections: p.sections.map(s => 
+          s.id === sectionId ? { ...s, enabled: s.enabled === false ? true : false } : s
+        )
+      };
+    }));
+  };
+
   const handleAddPage = () => {
     if (!newPageName || !newPageSlug) return;
 
@@ -324,14 +337,10 @@ export default function WebsitePagesPage() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="w-full bg-gray-100 p-1 rounded-lg grid grid-cols-4">
+        <TabsList className="w-full bg-gray-100 p-1 rounded-lg grid grid-cols-3">
           <TabsTrigger value="pages" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
             <LayoutDashboard className="w-4 h-4" />
-            Páginas
-          </TabsTrigger>
-          <TabsTrigger value="home" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
-            <Home className="w-4 h-4" />
-            Home Page
+            Constructor de Páginas
           </TabsTrigger>
           <TabsTrigger value="appointments" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
             <Calendar className="w-4 h-4" />
@@ -423,68 +432,49 @@ export default function WebsitePagesPage() {
 
             {/* Right Column - Selected Page Sections */}
             <div className="lg:col-span-5">
-              <Card className="border border-gray-200 shadow-sm">
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-xl font-semibold">{selectedPage.name}</CardTitle>
-                  <CardDescription className="text-gray-500">Secciones incluidas</CardDescription>
+              <Card className="border border-gray-200 shadow-sm sticky top-6">
+                <CardHeader className="pb-4 border-b border-gray-100">
+                  <CardTitle className="text-xl font-semibold flex items-center gap-2">
+                    <LayoutTemplate className="w-5 h-5 text-rose-500" />
+                    Secciones de {selectedPage.name}
+                  </CardTitle>
+                  <CardDescription className="text-gray-500">
+                    Activa o desactiva las secciones que quieres mostrar en esta página.
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    {selectedPage.sections.map((section) => (
-                      <div key={section.id} className="flex items-center gap-2 py-1.5">
-                        <div className="w-2 h-2 rounded-full bg-rose-400" />
-                        <span className="text-gray-700">{section.name}</span>
-                      </div>
-                    ))}
+                <CardContent className="pt-4">
+                  <div className="space-y-1">
+                    {selectedPage.sections.map((section) => {
+                      const isEnabled = section.enabled !== false;
+                      return (
+                        <div key={section.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-md flex items-center justify-center ${isEnabled ? 'bg-rose-100 text-rose-600' : 'bg-gray-100 text-gray-400'}`}>
+                              {isEnabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                            </div>
+                            <div>
+                              <span className={`block text-sm font-medium ${isEnabled ? 'text-gray-900' : 'text-gray-500'}`}>
+                                {section.name}
+                              </span>
+                            </div>
+                          </div>
+                          <Switch
+                            checked={isEnabled}
+                            onCheckedChange={() => handleToggleSection(selectedPage.id, section.id)}
+                            className="data-[state=checked]:bg-rose-500"
+                          />
+                        </div>
+                      );
+                    })}
                   </div>
 
                   <div className="mt-6 pt-4 border-t border-gray-100">
-                    <Button variant="outline" className="w-full gap-2 rounded-full">
-                      <ExternalLink className="w-4 h-4" />
-                      Vista Previa
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-
-        {/* Home Page Tab */}
-        <TabsContent value="home" className="mt-6">
-          <div className="grid lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-7">
-              <h2 className="font-heading text-lg font-semibold mb-4">Secciones de Home Page</h2>
-              <div className="space-y-3">
-                {pages.find(p => p.id === 'home')?.sections.map((section, index) => (
-                  <Card key={section.id} className="border border-gray-200 hover:border-gray-300 cursor-pointer transition-all">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-rose-50 flex items-center justify-center">
-                            <LayoutTemplate className="w-5 h-5 text-rose-400" />
-                          </div>
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{section.name}</h3>
-                            <p className="text-sm text-gray-500">Haz clic para editar</p>
-                          </div>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-            <div className="lg:col-span-5">
-              <Card className="border border-gray-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle>Vista Previa</CardTitle>
-                  <CardDescription>Así se verá tu home page</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                    <LayoutTemplate className="w-16 h-16 text-gray-300" />
+                    <Link href={`/studio/demo/${selectedPage.id === 'home' ? '' : selectedPage.id}`} target="_blank">
+                      <Button variant="outline" className="w-full gap-2 rounded-full border-rose-200 text-rose-600 hover:bg-rose-50">
+                        <ExternalLink className="w-4 h-4" />
+                        Vista Previa de {selectedPage.name}
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
