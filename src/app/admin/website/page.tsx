@@ -156,7 +156,9 @@ export default function WebsitePagesPage() {
   const [editingSection, setEditingSection] = useState<{ pageId: string, section: PageSection } | null>(null);
   const [colors, setColors] = useState({
     primary: '#f43f5e',
+    primaryForeground: '#ffffff',
     background: '#ffffff',
+    surface: '#f9fafb',
     text: '#111827'
   });
 
@@ -461,7 +463,7 @@ export default function WebsitePagesPage() {
                           />
                           <div className="flex justify-center gap-4">
                              <div className="group relative">
-                                <Button size="lg" className="rounded-full px-12 py-8 text-xl shadow-2xl hover:scale-105 transition-transform" style={{ backgroundColor: colors.primary, color: colors.primaryForeground }}>
+                                <Button size="lg" className="rounded-full px-12 py-8 text-xl shadow-2xl hover:scale-105 transition-transform" style={{ backgroundColor: colors.primary, color: colors.primaryForeground || '#ffffff' }}>
                                   Agendar Cita
                                 </Button>
                                 <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black text-white text-[10px] px-2 py-1 rounded">Cambiar Texto</div>
