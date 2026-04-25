@@ -234,7 +234,7 @@ export default function WebsitePagesPage() {
     background: '#ffffff',
     text: '#111827'
   });
-  const [activeTab, setActiveTab] = useState('pages');
+  const [activeTab, setActiveTab] = useState('home');
   const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
 
   useEffect(() => {
@@ -294,6 +294,26 @@ export default function WebsitePagesPage() {
       };
     }));
     setEditingSection(null);
+  };
+
+  const handleMoveSectionUp = (pageId: string, index: number) => {
+    if (index === 0) return;
+    setPages(pages.map(p => {
+      if (p.id !== pageId) return p;
+      const updatedSections = [...p.sections];
+      [updatedSections[index - 1], updatedSections[index]] = [updatedSections[index], updatedSections[index - 1]];
+      return { ...p, sections: updatedSections };
+    }));
+  };
+
+  const handleMoveSectionDown = (pageId: string, index: number) => {
+    setPages(pages.map(p => {
+      if (p.id !== pageId) return p;
+      if (index === p.sections.length - 1) return p;
+      const updatedSections = [...p.sections];
+      [updatedSections[index], updatedSections[index + 1]] = [updatedSections[index + 1], updatedSections[index]];
+      return { ...p, sections: updatedSections };
+    }));
   };
 
   const handleAddPage = () => {
@@ -372,10 +392,14 @@ export default function WebsitePagesPage() {
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="w-full bg-gray-100 p-1 rounded-lg grid grid-cols-3">
+        <TabsList className="w-full bg-gray-100 p-1 rounded-lg grid grid-cols-4">
+          <TabsTrigger value="home" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
+            <Home className="w-4 h-4" />
+            Página de Inicio
+          </TabsTrigger>
           <TabsTrigger value="pages" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
             <LayoutDashboard className="w-4 h-4" />
-            Constructor de Páginas
+            Otras Páginas
           </TabsTrigger>
           <TabsTrigger value="appointments" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
             <Calendar className="w-4 h-4" />
@@ -387,7 +411,75 @@ export default function WebsitePagesPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Pages Tab */}
+        {/* Home Tab */}
+        <TabsContent value="home" className="mt-6">
+          <Card className="border border-gray-200 shadow-sm">
+            <CardHeader className="pb-4 border-b border-gray-100 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-xl font-semibold flex items-center gap-2">
+                  <Home className="w-5 h-5 text-rose-500" />
+                  Secciones de Página de Inicio
+                </CardTitle>
+                <CardDescription>
+                  Organiza y edita el contenido de tu pantalla principal
+                </CardDescription>
+              </div>
+              <Link href={`/studio/demo/home`} target="_blank">
+                <Button variant="outline" size="sm" className="gap-2 rounded-full border-rose-200 text-rose-600">
+                  <ExternalLink className="w-4 h-4" />
+                  Ver Home
+                </Button>
+              </Link>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-1">
+                  {(pages.find(p => p.id === 'home')?.sections || []).map((section, idx) => {
+                    const isEnabled = section.enabled !== false;
+                    return (
+                      <div 
+                        key={section.id} 
+                        className="flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 transition-all border border-gray-100 cursor-pointer group"
+                        onClick={() => setEditingSection({ pageId: 'home', section })}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="flex flex-col -space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={(e) => { e.stopPropagation(); handleMoveSectionUp('home', idx); }} className="p-0.5 text-gray-400 hover:text-gray-600"><ChevronUp className="w-4 h-4" /></button>
+                            <button onClick={(e) => { e.stopPropagation(); handleMoveSectionDown('home', idx); }} className="p-0.5 text-gray-400 hover:text-gray-600"><ChevronDown className="w-4 h-4" /></button>
+                          </div>
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isEnabled ? 'bg-rose-100 text-rose-600 shadow-sm' : 'bg-gray-100 text-gray-400'}`}>
+                            {isEnabled ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                          </div>
+                          <div>
+                            <span className={`block font-medium ${isEnabled ? 'text-gray-900' : 'text-gray-500'}`}>{section.name}</span>
+                            <span className="text-xs text-gray-400">Clic para editar contenido</span>
+                          </div>
+                        </div>
+                        <Switch
+                          checked={isEnabled}
+                          onCheckedChange={() => handleToggleSection('home', section.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="data-[state=checked]:bg-rose-500"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div className="bg-gray-50 rounded-2xl p-8 border border-dashed border-gray-200 flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-white shadow-sm flex items-center justify-center mb-4">
+                    <Sparkles className="w-8 h-8 text-rose-300" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Editor Visual Próximamente</h4>
+                  <p className="text-sm text-gray-500 max-w-[240px]">
+                    Estamos trabajando en un editor "drag & drop" para que puedas mover los elementos directamente.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="pages" className="mt-6">
           <div className="grid lg:grid-cols-12 gap-6">
             {/* Left Column - Pages List */}
@@ -497,7 +589,7 @@ export default function WebsitePagesPage() {
                 </CardHeader>
                 <CardContent className="pt-4">
                   <div className="space-y-1">
-                    {selectedPage.sections.map((section) => {
+                    {selectedPage.sections.map((section, idx) => {
                       const isEnabled = section.enabled !== false;
                       return (
                         <div 
@@ -506,6 +598,20 @@ export default function WebsitePagesPage() {
                           onClick={() => setEditingSection({ pageId: selectedPage.id, section })}
                         >
                           <div className="flex items-center gap-3">
+                            <div className="flex flex-col -space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleMoveSectionUp(selectedPage.id, idx); }}
+                                className="p-0.5 text-gray-400 hover:text-gray-600"
+                              >
+                                <ChevronUp className="w-3 h-3" />
+                              </button>
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleMoveSectionDown(selectedPage.id, idx); }}
+                                className="p-0.5 text-gray-400 hover:text-gray-600"
+                              >
+                                <ChevronDown className="w-3 h-3" />
+                              </button>
+                            </div>
                             <div className={`w-8 h-8 rounded-md flex items-center justify-center ${isEnabled ? 'bg-rose-100 text-rose-600' : 'bg-gray-100 text-gray-400'}`}>
                               {isEnabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                             </div>
