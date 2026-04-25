@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMockAuth } from '@/components/providers/MockAuthProvider';
+import { useSession } from 'next-auth/react';
 import { THEME_COLORS, LuxuryThemeId, DEFAULT_PAGES } from '@/lib/firebase-mock';
 import { BUSINESS_TYPES, getBusinessType } from '@/lib/business-types';
 import { getThemesForBusinessType, getDefaultThemeIdForBusinessType, getThemeById, NicheTheme } from '@/lib/themes';
@@ -17,29 +17,37 @@ type SetupStep = 'business' | 'business-type' | 'theme' | 'domain' | 'complete';
 
 export default function StudioSetupPage() {
   const router = useRouter();
-  const { user, refreshUser } = useMockAuth();
+  const { data: session, status } = useSession();
 
   const [currentStep, setCurrentStep] = useState<SetupStep>('business-type');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [studioId, setStudioId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    // Business info
     businessName: '',
     businessType: 'waxing' as string,
-    email: '',
+    email: session?.user?.email || '',
     phone: '',
     address: '',
     city: '',
     state: '',
     zip: '',
     country: 'USA',
-    // Theme
     theme: getDefaultThemeIdForBusinessType('waxing') as LuxuryThemeId,
-    // Domain
     domain: '',
   });
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin?callbackUrl=/studio/setup');
+    }
+  }, [status, router]);
+
+  useEffect(() => {
+    if (session?.user?.email && !formData.email) {
+      setFormData((prev) => ({ ...prev, email: session.user.email as string }));
+    }
+  }, [session]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -51,50 +59,26 @@ export default function StudioSetupPage() {
     setIsLoading(true);
 
     try {
-      // Simulate creating studio - save to localStorage
-      const mockStudioId = 'studio-' + Date.now();
-      const studioData = {
-        id: mockStudioId,
-        businessName: formData.businessName,
-        businessType: formData.businessType,
-        email: formData.email,
-        phone: formData.phone,
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        zip: formData.zip,
-        country: formData.country,
-        theme: {
-          id: formData.theme,
-          name: getThemeById(formData.theme)?.name || formData.theme,
-          description: getThemeById(formData.theme)?.description || '',
-        },
-        colors: THEME_COLORS[formData.theme],
-        domain: '',
-        stripeAccountId: null,
-        stripeConnected: false,
-        bookingBufferMinutes: 15,
-        maxAdvanceDays: 60,
-        timezone: 'America/New_York',
-        currency: 'USD',
-        isActive: true,
-        isPublished: false,
-        pages: DEFAULT_PAGES,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      const res = await fetch('/api/studios/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName: formData.businessName,
+          businessType: formData.businessType,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          country: formData.country,
+          themeId: formData.theme,
+        }),
+      });
 
-      // Save to localStorage
-      localStorage.setItem('mock_studio_' + mockStudioId, JSON.stringify(studioData));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save studio');
 
-      // Update user with studioId
-      const updatedUser = { ...user, studioId: mockStudioId } as any;
-      localStorage.setItem('mock_user', JSON.stringify(updatedUser));
-
-      // Refresh user context to get the studioId
-      refreshUser();
-
-      setStudioId(mockStudioId);
       setCurrentStep('theme');
     } catch (err: any) {
       setError(err.message || 'Failed to create studio');
@@ -104,22 +88,34 @@ export default function StudioSetupPage() {
   };
 
   const handleThemeSubmit = async () => {
-    // Use business type default theme if user hasn't explicitly chosen
     const bt = getBusinessType(formData.businessType);
     const effectiveTheme = formData.theme || bt?.defaultThemeId || 'waxing-rose-gold';
 
-    // Update studio with selected theme
-    if (studioId) {
-      const studioData = JSON.parse(localStorage.getItem('mock_studio_' + studioId) || '{}');
-      studioData.theme = {
-        id: effectiveTheme,
-        name: getThemeById(effectiveTheme)?.name || effectiveTheme,
-        description: getThemeById(effectiveTheme)?.description || '',
-      };
-      studioData.colors = THEME_COLORS[effectiveTheme];
-      localStorage.setItem('mock_studio_' + studioId, JSON.stringify(studioData));
+    try {
+      const res = await fetch('/api/studios/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName: formData.businessName,
+          businessType: formData.businessType,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          country: formData.country,
+          themeId: effectiveTheme,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save theme');
+
+      setCurrentStep('domain');
+    } catch (err: any) {
+      setError(err.message || 'Failed to save theme');
     }
-    setCurrentStep('domain');
   };
 
   const handleDomainSubmit = async (e: React.FormEvent) => {
@@ -128,14 +124,26 @@ export default function StudioSetupPage() {
     setIsLoading(true);
 
     try {
-      if (!studioId) throw new Error('No studio ID found');
+      const res = await fetch('/api/studios/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName: formData.businessName,
+          businessType: formData.businessType,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          country: formData.country,
+          themeId: formData.theme,
+          domain: formData.domain,
+        }),
+      });
 
-      // Update studio with domain
-      const studioData = JSON.parse(localStorage.getItem('mock_studio_' + studioId) || '{}');
-      studioData.domain = formData.domain.toLowerCase().replace('www.', '');
-      studioData.isPublished = true;
-      studioData.updatedAt = new Date().toISOString();
-      localStorage.setItem('mock_studio_' + studioId, JSON.stringify(studioData));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save domain');
 
       setCurrentStep('complete');
     } catch (err: any) {
@@ -144,6 +152,14 @@ export default function StudioSetupPage() {
       setIsLoading(false);
     }
   };
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const renderStep = () => {
     switch (currentStep) {
@@ -172,7 +188,6 @@ export default function StudioSetupPage() {
                 >
                   <CardContent className="p-4">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
-                      {/* Render icon dynamically - using a generic approach */}
                       <span className="text-lg font-bold text-primary">{bt.shortName[0]}</span>
                     </div>
                     <h4 className="font-heading font-semibold">{bt.name}</h4>
@@ -334,6 +349,12 @@ export default function StudioSetupPage() {
               </p>
             </div>
 
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {availableThemes.map((theme: NicheTheme) => (
                 <Card
@@ -346,7 +367,6 @@ export default function StudioSetupPage() {
                   onClick={() => setFormData((prev) => ({ ...prev, theme: theme.id as LuxuryThemeId }))}
                 >
                   <CardContent className="p-0">
-                    {/* Live preview area */}
                     <div
                       className="relative p-4 pb-3"
                       style={{
@@ -354,7 +374,6 @@ export default function StudioSetupPage() {
                         borderBottom: `1px solid ${theme.colors.border}`,
                       }}
                     >
-                      {/* Mini header */}
                       <div className="flex items-center justify-between mb-3">
                         <div
                           className="font-heading font-bold text-sm"
@@ -368,7 +387,6 @@ export default function StudioSetupPage() {
                         />
                       </div>
 
-                      {/* Mini hero section */}
                       <div
                         className="rounded-md p-3 mb-2"
                         style={{ background: theme.colors.surface }}
@@ -407,7 +425,6 @@ export default function StudioSetupPage() {
                         </div>
                       </div>
 
-                      {/* Mini service cards */}
                       <div className="flex gap-2">
                         <div
                           className="flex-1 rounded-md p-2"
@@ -460,12 +477,9 @@ export default function StudioSetupPage() {
                       )}
                     </div>
 
-                    {/* Theme info */}
                     <div className="p-4">
                       <h4 className="font-heading font-semibold">{theme.name}</h4>
                       <p className="text-xs text-gray-500 mt-1">{theme.description}</p>
-
-                      {/* Color palette swatches */}
                       <div className="flex gap-1.5 mt-3">
                         {Object.entries(theme.colors).slice(0, 5).map(([key, color]) => (
                           <div
@@ -597,4 +611,3 @@ export default function StudioSetupPage() {
     </div>
   );
 }
-

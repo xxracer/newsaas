@@ -21,7 +21,8 @@
       "Bash(python3 *)",
       "Bash(curl -s http://localhost:9002/studio/setup)",
       "Bash(curl *)",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(DATABASE_URL=\"postgresql://fake:fake@localhost:5432/fake\" npx prisma migrate diff --from-empty --to-schema-datamodel prisma/schema.prisma --script)"
     ]
   }
 }

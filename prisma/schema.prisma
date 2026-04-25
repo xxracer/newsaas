@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -358,6 +358,7 @@ model BusinessSettings {
 
   domain    String  @unique
   businessName    String @default("Viva La Beauty")
+  businessType    String @default("waxing")
   tagline         String?
   address         String?
   city            String?
@@ -376,6 +377,9 @@ model BusinessSettings {
   primaryColor    String @default("#D8006E")
   secondaryColor  String @default("#7400D8")
 
+  themeId         String @default("waxing-rose-gold")
+  colors          String? // JSON string with full theme colors
+
   bookingBufferMinutes Int @default(30)
   maxAdvanceDays       Int @default(60)
 
@@ -385,6 +389,11 @@ model BusinessSettings {
   instagram      String?
   facebook       String?
   tiktok         String?
+
+  stripeAccountId  String?
+  stripeConnected  Boolean @default(false)
+
+  isPublished    Boolean @default(false)
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

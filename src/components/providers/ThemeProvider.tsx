@@ -14,14 +14,52 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+function parseColors(studioColors: string | null | undefined): ThemeColors | null {
+  if (!studioColors) return null;
+  try {
+    const parsed = JSON.parse(studioColors);
+    if (parsed.primary) return parsed as ThemeColors;
+  } catch {
+    // ignore
+  }
+  return null;
+}
 
-/**
- * Find a mock studio in localStorage that matches the current hostname.
- */
-function findStudioByDomain(hostname: string): { themeId: string; colors: ThemeColors } | null {
+async function fetchStudioByDomain(hostname: string): Promise<{ themeId: string; colors: ThemeColors } | null> {
+  try {
+    const normalized = hostname.toLowerCase().replace('www.', '');
+    const res = await fetch(`/api/studios/lookup?domain=${encodeURIComponent(normalized)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.studio?.themeId) {
+      const colors = parseColors(data.studio.colors) || THEME_COLORS[data.studio.themeId] || THEME_COLORS['waxing-rose-gold'];
+      return { themeId: data.studio.themeId, colors };
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+async function fetchUserStudio(): Promise<{ themeId: string; colors: ThemeColors } | null> {
+  try {
+    const res = await fetch('/api/studios/me');
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.studio?.themeId) {
+      const colors = parseColors(data.studio.colors) || THEME_COLORS[data.studio.themeId] || THEME_COLORS['waxing-rose-gold'];
+      return { themeId: data.studio.themeId, colors };
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+function findStudioInLocalStorage(): { themeId: string; colors: ThemeColors } | null {
   if (typeof window === 'undefined') return null;
   try {
-    const normalizedHost = hostname.toLowerCase().replace('www.', '');
+    const normalizedHost = window.location.hostname.toLowerCase().replace('www.', '');
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith('mock_studio_')) {
@@ -43,10 +81,7 @@ function findStudioByDomain(hostname: string): { themeId: string; colors: ThemeC
   return null;
 }
 
-/**
- * Find the logged-in user's studio theme from localStorage.
- */
-function findUserStudioTheme(): { themeId: string; colors: ThemeColors } | null {
+function findUserStudioInLocalStorage(): { themeId: string; colors: ThemeColors } | null {
   if (typeof window === 'undefined') return null;
   try {
     const user = JSON.parse(localStorage.getItem('mock_user') || '{}');
@@ -82,7 +117,6 @@ function applyThemeToDocument(colors: ThemeColors) {
   const accentFg = getContrastColor(colors.accent);
   const surfaceFg = getContrastColor(colors.surface);
 
-  // Core colors
   root.style.setProperty('--background', backgroundHsl);
   root.style.setProperty('--foreground', textHsl);
 
@@ -108,7 +142,6 @@ function applyThemeToDocument(colors: ThemeColors) {
   root.style.setProperty('--input', borderHsl);
   root.style.setProperty('--ring', primaryHsl);
 
-  // Sidebar
   root.style.setProperty('--sidebar-background', backgroundHsl);
   root.style.setProperty('--sidebar-foreground', textHsl);
   root.style.setProperty('--sidebar-primary', primaryHsl);
@@ -118,14 +151,12 @@ function applyThemeToDocument(colors: ThemeColors) {
   root.style.setProperty('--sidebar-border', borderHsl);
   root.style.setProperty('--sidebar-ring', primaryHsl);
 
-  // Charts (use theme colors)
   root.style.setProperty('--chart-1', primaryHsl);
   root.style.setProperty('--chart-2', accentHsl);
   root.style.setProperty('--chart-3', secondaryHsl);
   root.style.setProperty('--chart-4', textMutedHsl);
   root.style.setProperty('--chart-5', borderHsl);
 
-  // Remove old theme classes
   root.classList.forEach((cls) => {
     if (cls.startsWith('theme-')) root.classList.remove(cls);
   });
@@ -136,17 +167,23 @@ export function ThemeProvider({ children, defaultTheme = 'default' }: { children
   const [mounted, setMounted] = useState(false);
   const [appliedColors, setAppliedColors] = useState<ThemeColors>(THEME_COLORS['waxing-rose-gold']);
 
-  // Determine effective colors based on route and saved preferences
-  const resolveColors = useCallback((): ThemeColors => {
-    // Try to find a studio theme by domain first
-    const studioByDomain = findStudioByDomain(typeof window !== 'undefined' ? window.location.hostname : '');
+  const resolveColors = useCallback(async (): Promise<ThemeColors> => {
+    // 1. Try API by domain
+    const studioByDomain = await fetchStudioByDomain(typeof window !== 'undefined' ? window.location.hostname : '');
     if (studioByDomain?.colors) return studioByDomain.colors;
 
-    // Fall back to logged-in user's studio theme
-    const userStudio = findUserStudioTheme();
+    // 2. Try API for logged-in user
+    const userStudio = await fetchUserStudio();
     if (userStudio?.colors) return userStudio.colors;
 
-    // Fall back to saved global theme
+    // 3. Fallback to localStorage (dev/demo)
+    const lsDomain = findStudioInLocalStorage();
+    if (lsDomain?.colors) return lsDomain.colors;
+
+    const lsUser = findUserStudioInLocalStorage();
+    if (lsUser?.colors) return lsUser.colors;
+
+    // 4. Fallback to saved global theme
     const savedTheme = typeof window !== 'undefined'
       ? (localStorage.getItem('waxing-studio-theme') as ThemeId)
       : null;
@@ -165,12 +202,12 @@ export function ThemeProvider({ children, defaultTheme = 'default' }: { children
     }
   }, []);
 
-  // Apply theme once mounted (and on every re-render to catch domain changes)
   useEffect(() => {
     if (!mounted) return;
-    const colors = resolveColors();
-    setAppliedColors(colors);
-    applyThemeToDocument(colors);
+    resolveColors().then((colors) => {
+      setAppliedColors(colors);
+      applyThemeToDocument(colors);
+    });
   }, [mounted, resolveColors]);
 
   const setTheme = (newTheme: ThemeId) => {
