@@ -25,6 +25,7 @@ import {
   X
 } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { PAGE_TEMPLATES, SEO_TIPS, DEFAULT_PAGES, LuxuryThemeId, THEME_COLORS } from '@/lib/firebase-mock';
 
 interface StudioData {
@@ -63,6 +64,17 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
   const [loading, setLoading] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<string>('home');
+  const pathname = usePathname();
+
+  const getPath = (pageId: string) => {
+    if (!pathname) return `/${pageId}`;
+    const parts = pathname.split('/');
+    if (parts.length > 0) {
+      parts[parts.length - 1] = pageId;
+      return parts.join('/');
+    }
+    return `/${pageId}`;
+  };
 
   useEffect(() => {
     // Get studio from localStorage (demo) or URL params
@@ -176,7 +188,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                     Expertos en waxing y cuidado de la piel. Resultados suaves y duraderos en un ambiente luxury.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link href="/book">
+                    <Link href={getPath('appointments')}>
                       <Button
                         size="lg"
                         className="rounded-full px-8 py-6 text-lg"
@@ -186,7 +198,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                         Agendar Cita
                       </Button>
                     </Link>
-                    <Link href="/studio/demo/services">
+                    <Link href={getPath('services')}>
                       <Button
                         size="lg"
                         variant="outline"
@@ -324,7 +336,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                             </span>
                           </div>
                         </div>
-                        <Link href="/book">
+                        <Link href={getPath('appointments')}>
                           <Button
                             size="sm"
                             className="w-full mt-4"
@@ -820,7 +832,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                       <p className="mb-6" style={{ color: colors?.textMuted }}>
                         Reserva tu cita en segundos. Sin llamadas, sin esperas.
                       </p>
-                      <Link href="/book">
+                      <Link href={getPath('appointments')}>
                         <Button
                           size="lg"
                           className="rounded-full px-8 py-6 text-lg"
@@ -917,7 +929,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
               <h1 className="font-heading text-4xl font-bold mb-4" style={{ color: colors?.text }}>
                 Página no encontrada
               </h1>
-              <Link href="/studio/demo">
+              <Link href={getPath('home')}>
                 <Button style={{ backgroundColor: colors?.primary, color: colors?.primaryForeground }}>
                   Volver al Inicio
                 </Button>
@@ -980,7 +992,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                 return (
                   <Link
                     key={page.id}
-                    href={`/studio/demo/${page.id}`}
+                    href={getPath(page.id)}
                     className={`text-sm font-medium transition-colors ${
                       currentPage === page.id
                         ? 'underline underline-offset-4'
@@ -994,7 +1006,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                   </Link>
                 );
               })}
-              <Link href="/book">
+              <Link href={getPath('appointments')}>
                 <Button
                   className="rounded-full px-6"
                   style={{ backgroundColor: colors?.primary, color: colors?.primaryForeground }}
@@ -1026,7 +1038,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
               return (
                 <Link
                   key={page.id}
-                  href={`/studio/demo/${page.id}`}
+                  href={getPath(page.id)}
                   className="block py-2 text-sm font-medium"
                   style={{ color: colors?.text }}
                   onClick={() => setMobileMenuOpen(false)}
@@ -1035,7 +1047,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                 </Link>
               );
             })}
-            <Link href="/book" onClick={() => setMobileMenuOpen(false)}>
+            <Link href={getPath('appointments')} onClick={() => setMobileMenuOpen(false)}>
               <Button
                 className="w-full rounded-full"
                 style={{ backgroundColor: colors?.primary, color: colors?.primaryForeground }}
@@ -1073,7 +1085,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                   return (
                     <Link
                       key={page.id}
-                      href={`/studio/demo/${page.id}`}
+                      href={getPath(page.id)}
                       className="block text-sm"
                       style={{ color: colors?.textMuted }}
                     >
