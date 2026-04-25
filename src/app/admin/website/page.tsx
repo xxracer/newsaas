@@ -348,9 +348,18 @@ export default function WebsitePagesPage() {
           <p className="text-gray-500 text-sm">Personaliza las páginas, secciones y estilos de tu sitio</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="gap-2 rounded-full">
-            <Sparkles className="w-4 h-4" />
-            Ver SEO Tips
+          <Button 
+            variant="ghost" 
+            className="text-gray-400 hover:text-rose-500"
+            onClick={() => {
+              if (confirm('¿Estás seguro de que quieres restablecer todo? Se borrarán todos los cambios locales.')) {
+                localStorage.clear();
+                window.location.reload();
+              }
+            }}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Restablecer
           </Button>
           <Link href={`/studio/demo/home`} target="_blank">
             <Button className="gap-2 rounded-full bg-rose-500 hover:bg-rose-600">
@@ -627,7 +636,13 @@ export default function WebsitePagesPage() {
                   </div>
 
                   <div className="pt-4">
-                    <Button className="w-full bg-rose-500 hover:bg-rose-600 rounded-full">
+                    <Button 
+                      className="w-full bg-rose-500 hover:bg-rose-600 rounded-full"
+                      onClick={() => {
+                        setIsInitialLoadDone(true); // Force sync
+                        alert('Apariencia guardada correctamente');
+                      }}
+                    >
                       Guardar Cambios de Apariencia
                     </Button>
                   </div>
@@ -694,11 +709,26 @@ export default function WebsitePagesPage() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Título de la Sección</Label>
-              <Input defaultValue={editingSection?.section.name} />
+              <Input 
+                value={editingSection?.section.name} 
+                onChange={(e) => setEditingSection({
+                  ...editingSection!,
+                  section: { ...editingSection!.section, name: e.target.value }
+                })}
+              />
             </div>
             <div className="space-y-2">
-              <Label>Subtítulo / Descripción</Label>
-              <Input placeholder="Opcional..." />
+              <Label>Texto Principal / Hero Text</Label>
+              <Input 
+                placeholder="Ej: Luce radiante con nuestro waxing de lujo" 
+                onChange={(e) => {
+                  // This is a mockup for real content editing
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Etiqueta del Botón</Label>
+              <Input placeholder="Ej: Reservar Ahora" />
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <div className="space-y-0.5">
@@ -712,7 +742,14 @@ export default function WebsitePagesPage() {
             <Button variant="outline" onClick={() => setEditingSection(null)}>
               Cancelar
             </Button>
-            <Button onClick={() => setEditingSection(null)} className="bg-rose-500 hover:bg-rose-600">
+            <Button 
+              onClick={() => {
+                if (editingSection) {
+                  handleUpdateSection(editingSection.pageId, editingSection.section.id, editingSection.section);
+                }
+              }} 
+              className="bg-rose-500 hover:bg-rose-600"
+            >
               Guardar Cambios
             </Button>
           </DialogFooter>
