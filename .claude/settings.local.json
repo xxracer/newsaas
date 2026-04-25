@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma:*)",
+      "Bash(npm install:*)",
+      "WebSearch",
+      "Bash(npm run:*)",
+      "Bash(xxd src/app/auth/forgot-password/page.tsx)",
+      "Bash(node -e \"const fs=require\\('fs'\\); const c=fs.readFileSync\\('src/app/auth/forgot-password/page.tsx','utf8'\\); console.log\\('Length:',c.length\\); console.log\\('Last 200 chars:',JSON.stringify\\(c.slice\\(-200\\)\\)\\);\")",
+      "Bash(npx ts-node:*)",
+      "Bash(curl -s http://localhost:9002)",
+      "Bash(taskkill *)",
+      "Bash(curl -s http://localhost:9003)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(rm -rf .next)",
+      "Bash(curl -s http://localhost:9004)",
+      "Bash(curl -s http://localhost:9002/admin/website)",
+      "Bash(npx tsc *)",
+      "Bash(git checkout *)",
+      "mcp__ide__executeCode",
+      "Bash(python3 *)",
+      "Bash(curl -s http://localhost:9002/studio/setup)",
+      "Bash(curl *)"
+    ]
+  }
+}

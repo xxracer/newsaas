@@ -1,0 +1,344 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   LUXURY THEMES FOR WAXING STUDIOS
+   5 Premium Design Templates
+   ============================================ */
+
+body {
+  font-family: var(--font-body), 'Inter', Arial, Helvetica, sans-serif;
+}
+
+/* Typography for luxury feel */
+.font-heading {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@layer base {
+  /* ============================================
+     DEFAULT THEME (Rose Gold Elegance)
+     ============================================ */
+  :root {
+    --background: 350 40% 98%;
+    --foreground: 340 30% 25%;
+
+    --card: 350 50% 99%;
+    --card-foreground: 340 30% 25%;
+
+    --popover: 350 50% 99%;
+    --popover-foreground: 340 30% 25%;
+
+    --primary: 350 50% 55%; /* Rose Gold */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 40% 90%;
+    --secondary-foreground: 340 30% 20%;
+
+    --muted: 340 30% 95%;
+    --muted-foreground: 340 20% 45%;
+
+    --accent: 45 60% 55%; /* Gold accent */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 340 30% 88%;
+    --input: 340 30% 92%;
+    --ring: 350 50% 55%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 350 40% 96%;
+    --sidebar-foreground: 340 30% 20%;
+    --sidebar-primary: 350 50% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 45 60% 55%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 340 30% 85%;
+    --sidebar-ring: 350 50% 55%;
+
+    --chart-1: 350 50% 55%;
+    --chart-2: 45 60% 55%;
+    --chart-3: 340 40% 70%;
+    --chart-4: 280 30% 60%;
+    --chart-5: 200 40% 50%;
+  }
+
+  /* ============================================
+     MIDNIGHT LUXE THEME
+     ============================================ */
+  .theme-midnight-luxe {
+    --background: 0 0% 5%;
+    --foreground: 0 0% 95%;
+
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 45 60% 55%; /* Gold */
+    --primary-foreground: 0 0% 5%;
+
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 90%;
+
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 65%;
+
+    --accent: 45 80% 65%; /* Bright Gold */
+    --accent-foreground: 0 0% 5%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 12%;
+    --ring: 45 60% 55%;
+
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 45 60% 55%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 45 80% 65%;
+    --sidebar-accent-foreground: 0 0% 5%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 45 60% 55%;
+  }
+
+  /* ============================================
+     BLANC PUR THEME
+     ============================================ */
+  .theme-blanc-pur {
+    --background: 35 50% 98%;
+    --foreground: 35 20% 25%;
+
+    --card: 35 40% 99%;
+    --card-foreground: 35 20% 25%;
+
+    --popover: 35 40% 99%;
+    --popover-foreground: 35 20% 25%;
+
+    --primary: 45 50% 50%; /* Muted Gold */
+    --primary-foreground: 35 30% 15%;
+
+    --secondary: 35 30% 92%;
+    --secondary-foreground: 35 20% 20%;
+
+    --muted: 35 25% 95%;
+    --muted-foreground: 35 15% 45%;
+
+    --accent: 35 60% 60%; /* Champagne */
+    --accent-foreground: 35 30% 15%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 35 25% 88%;
+    --input: 35 25% 94%;
+    --ring: 45 50% 50%;
+
+    --sidebar-background: 35 30% 97%;
+    --sidebar-foreground: 35 20% 20%;
+    --sidebar-primary: 45 50% 50%;
+    --sidebar-primary-foreground: 35 30% 15%;
+    --sidebar-accent: 35 60% 60%;
+    --sidebar-accent-foreground: 35 30% 15%;
+    --sidebar-border: 35 25% 85%;
+    --sidebar-ring: 45 50% 50%;
+  }
+
+  /* ============================================
+     VELVET BERRY THEME
+     ============================================ */
+  .theme-velvet-berry {
+    --background: 340 50% 8%;
+    --foreground: 340 30% 92%;
+
+    --card: 340 45% 12%;
+    --card-foreground: 340 30% 92%;
+
+    --popover: 340 45% 12%;
+    --popover-foreground: 340 30% 92%;
+
+    --primary: 340 70% 45%; /* Burgundy */
+    --primary-foreground: 340 30% 95%;
+
+    --secondary: 340 50% 20%;
+    --secondary-foreground: 340 30% 85%;
+
+    --muted: 340 40% 15%;
+    --muted-foreground: 340 25% 65%;
+
+    --accent: 25 70% 55%; /* Copper */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 340 40% 22%;
+    --input: 340 40% 15%;
+    --ring: 340 70% 45%;
+
+    --sidebar-background: 340 45% 10%;
+    --sidebar-foreground: 340 30% 88%;
+    --sidebar-primary: 340 70% 45%;
+    --sidebar-primary-foreground: 340 30% 95%;
+    --sidebar-accent: 25 70% 55%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 340 40% 18%;
+    --sidebar-ring: 340 70% 45%;
+  }
+
+  /* ============================================
+     NUDE MINIMAL THEME
+     ============================================ */
+  .theme-nude-minimal {
+    --background: 25 30% 97%;
+    --foreground: 25 20% 30%;
+
+    --card: 25 25% 99%;
+    --card-foreground: 25 20% 30%;
+
+    --popover: 25 25% 99%;
+    --popover-foreground: 25 20% 30%;
+
+    --primary: 25 40% 70%; /* Nude */
+    --primary-foreground: 25 30% 20%;
+
+    --secondary: 25 30% 90%;
+    --secondary-foreground: 25 20% 25%;
+
+    --muted: 25 25% 94%;
+    --muted-foreground: 25 15% 50%;
+
+    --accent: 25 35% 55%; /* Taupe */
+    --accent-foreground: 25 30% 95%;
+
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 25 25% 88%;
+    --input: 25 25% 94%;
+    --ring: 25 40% 70%;
+
+    --sidebar-background: 25 25% 96%;
+    --sidebar-foreground: 25 20% 25%;
+    --sidebar-primary: 25 40% 70%;
+    --sidebar-primary-foreground: 25 30% 20%;
+    --sidebar-accent: 25 35% 55%;
+    --sidebar-accent-foreground: 25 30% 95%;
+    --sidebar-border: 25 25% 85%;
+    --sidebar-ring: 25 40% 70%;
+  }
+
+  /* ============================================
+     ROSE GOLD ELEGANCE (explicit)
+     ============================================ */
+  .theme-rose-gold {
+    --background: 350 40% 98%;
+    --foreground: 340 30% 25%;
+
+    --card: 350 50% 99%;
+    --card-foreground: 340 30% 25%;
+
+    --popover: 350 50% 99%;
+    --popover-foreground: 340 30% 25%;
+
+    --primary: 350 50% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 40% 90%;
+    --secondary-foreground: 340 30% 20%;
+
+    --muted: 340 30% 95%;
+    --muted-foreground: 340 20% 45%;
+
+    --accent: 45 60% 55%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 340 30% 88%;
+    --input: 340 30% 92%;
+    --ring: 350 50% 55%;
+
+    --sidebar-background: 350 40% 96%;
+    --sidebar-foreground: 340 30% 20%;
+    --sidebar-primary: 350 50% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 45 60% 55%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 340 30% 85%;
+    --sidebar-ring: 350 50% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ============================================
+   LUXURY STYLES
+   ============================================ */
+
+@layer components {
+  /* Elegant gradient backgrounds */
+  .gradient-rose-gold {
+    background: linear-gradient(135deg, #FDF8F5 0%, #F5E6E6 50%, #E8C4C4 100%);
+  }
+
+  .gradient-midnight {
+    background: linear-gradient(135deg, #0D0D0D 0%, #1A1A1A 50%, #2D2D2D 100%);
+  }
+
+  .gradient-blanc {
+    background: linear-gradient(135deg, #FAF9F7 0%, #F5F0EB 50%, #E8DDD5 100%);
+  }
+
+  .gradient-velvet {
+    background: linear-gradient(135deg, #1A0A0F 0%, #2D121A 50%, #4A0E1E 100%);
+  }
+
+  .gradient-nude {
+    background: linear-gradient(135deg, #F9F7F5 0%, #F0E8E0 50%, #E0D0C0 100%);
+  }
+
+  /* Gold text effect */
+  .text-gold {
+    background: linear-gradient(135deg, #D4AF37, #F4E5B7, #B8962E);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Elegant card shadows */
+  .shadow-luxury {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  }
+
+  .shadow-luxury-soft {
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Marble texture effect (can be enhanced with actual images) */
+  .marble-bg {
+    background-color: #FDF8F5;
+    background-image:
+      radial-gradient(circle at 30% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 70% 80%, rgba(183, 110, 121, 0.05) 0%, transparent 50%);
+  }
+}

@@ -1,0 +1,434 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTH & USERS
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String?
+  firstName     String?
+  lastName      String?
+  phone         String?
+  role          String    @default("CLIENT")
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  clientProfile ClientProfile?
+  orders        Order[]
+  giftCards     GiftCard[]
+  adminSettings BusinessSettings?
+}
+
+model ClientProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  preferredGender String?
+  notes           String?
+
+  smsOptIn        Boolean  @default(true)
+  emailOptIn      Boolean  @default(true)
+
+  totalVisits     Int      @default(0)
+  totalSpent      Float    @default(0)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  appointments    Appointment[]
+  giftCardBalances ClientGiftCardBalance[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ============================================
+// SERVICES (CMS)
+// ============================================
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  imageUrl    String?
+  sortOrder   Int      @default(0)
+  gender      String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services    Service[]
+}
+
+model Service {
+  id           String   @id @default(cuid())
+  categoryId   String
+  category     Category @relation(fields: [categoryId], references: [id])
+
+  name         String
+  slug         String   @unique
+  description  String?
+  price        Float
+  duration     Int
+
+  imageUrl     String?
+
+  gender       String   @default("UNISEX")
+
+  bufferBefore Int      @default(0)
+  bufferAfter  Int      @default(0)
+
+  isActive     Boolean  @default(true)
+  sortOrder    Int      @default(0)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  appointmentItems AppointmentItem[]
+}
+
+// ============================================
+// APPOINTMENTS & BOOKING
+// ============================================
+
+model Appointment {
+  id              String    @id @default(cuid())
+
+  clientId        String?
+  clientProfileId String?
+  clientProfile   ClientProfile? @relation(fields: [clientProfileId], references: [id])
+
+  guestEmail     String?
+  guestFirstName String?
+  guestLastName  String?
+  guestPhone     String?
+
+  dateTime       DateTime
+  endDateTime    DateTime
+
+  status         String @default("PENDING")
+
+  subtotal      Float
+  tax           Float  @default(0)
+  total         Float
+
+  clientNotes    String?
+  internalNotes  String?
+
+  source         String @default("ONLINE")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items         AppointmentItem[]
+  payments      Payment[]
+  reminders     Reminder[]
+}
+
+model AppointmentItem {
+  id            String      @id @default(cuid())
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  serviceId     String
+  service       Service     @relation(fields: [serviceId], references: [id])
+
+  price         Float
+  quantity      Int         @default(1)
+
+  createdAt     DateTime    @default(now())
+}
+
+// ============================================
+// PAYMENTS
+// ============================================
+
+model Payment {
+  id              String        @id @default(cuid())
+  appointmentId   String?
+  appointment     Appointment?  @relation(fields: [appointmentId], references: [id])
+
+  orderId         String?
+  order           Order?        @relation(fields: [orderId], references: [id])
+
+  amount          Float
+  tip             Float        @default(0)
+
+  stripePaymentId String       @unique
+  stripeChargeId  String?
+
+  status          String       @default("PENDING")
+  method          String?
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+// ============================================
+// PRODUCTS (E-commerce)
+// ============================================
+
+model Product {
+  id           String    @id @default(cuid())
+
+  name         String
+  slug         String    @unique
+  description  String?
+
+  price        Float
+  comparePrice Float?
+
+  images      String
+  category    String?
+
+  inventory   Int       @default(0)
+  sku         String?   @unique
+
+  isActive    Boolean   @default(true)
+  isFeatured  Boolean   @default(false)
+
+  weight      Float?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String?
+  user            User?       @relation(fields: [userId], references: [id])
+
+  email           String
+  firstName       String
+  lastName        String
+
+  shippingAddress String?
+
+  subtotal        Float     @default(0)
+  tax             Float     @default(0)
+  shipping        Float     @default(0)
+  total           Float
+
+  status          String    @default("PENDING")
+
+  stripeSessionId String?   @unique
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  items           OrderItem[]
+  payments        Payment[]
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+
+  price      Float
+  quantity   Int
+
+  createdAt  DateTime @default(now())
+}
+
+// ============================================
+// GIFT CARDS
+// ============================================
+
+model GiftCard {
+  id            String    @id @default(cuid())
+
+  userId        String?
+  user          User?     @relation(fields: [userId], references: [id])
+
+  code          String    @unique
+  qrCodeData    String    @unique
+
+  originalAmount Float
+  currentBalance Float
+
+  validUntil    DateTime?
+  isActive      Boolean   @default(true)
+
+  purchasedForName   String?
+  purchasedForEmail  String?
+  message             String?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  transactions  GiftCardTransaction[]
+  balances      ClientGiftCardBalance[]
+}
+
+model GiftCardTransaction {
+  id          String      @id @default(cuid())
+  giftCardId  String
+  giftCard    GiftCard    @relation(fields: [giftCardId], references: [id], onDelete: Cascade)
+
+  amount      Float
+  type        String
+
+  appointmentId String?
+  orderId       String?
+
+  notes        String?
+
+  createdAt    DateTime   @default(now())
+}
+
+model ClientGiftCardBalance {
+  id              String    @id @default(cuid())
+  clientProfileId String
+  clientProfile   ClientProfile @relation(fields: [clientProfileId], references: [id], onDelete: Cascade)
+
+  giftCardId      String
+  giftCard        GiftCard  @relation(fields: [giftCardId], references: [id], onDelete: Cascade)
+
+  balance         Float
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([clientProfileId, giftCardId])
+}
+
+// ============================================
+// REMINDERS
+// ============================================
+
+model Reminder {
+  id            String        @id @default(cuid())
+  appointmentId String
+  appointment   Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  type          String
+  scheduledFor  DateTime
+  sentAt        DateTime?
+
+  twilioSid     String?
+  status        String        @default("SCHEDULED")
+
+  createdAt     DateTime      @default(now())
+}
+
+// ============================================
+// CMS - SITE CONTENT
+// ============================================
+
+model SiteContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  title     String?
+  content   String
+  imageUrl  String?
+
+  isPublished Boolean  @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model BusinessSettings {
+  id        String  @id @default(cuid())
+  userId    String  @unique
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  domain    String  @unique
+  businessName    String @default("Viva La Beauty")
+  tagline         String?
+  address         String?
+  city            String?
+  state           String?
+  zip             String?
+  country         String @default("USA")
+  phone           String?
+  email           String?
+
+  lat             Float?
+  lng             Float?
+
+  hours           String?
+
+  logoUrl         String?
+  primaryColor    String @default("#D8006E")
+  secondaryColor  String @default("#7400D8")
+
+  bookingBufferMinutes Int @default(30)
+  maxAdvanceDays       Int @default(60)
+
+  smsEnabled     Boolean @default(false)
+  emailEnabled   Boolean @default(false)
+
+  instagram      String?
+  facebook       String?
+  tiktok         String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ============================================
+// TESTIMONIALS & SPECIALS (CMS)
+// ============================================
+
+model Testimonial {
+  id        String   @id @default(cuid())
+
+  quote     String
+  author    String
+  location  String?
+  rating    Int?
+
+  imageUrl  String?
+
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Special {
+  id        String    @id @default(cuid())
+
+  title     String
+  slug      String    @unique
+  description String
+
+  imageUrl  String?
+
+  ctaText   String?
+  ctaLink   String?
+
+  validFrom DateTime?
+  validUntil DateTime?
+
+  isActive  Boolean   @default(true)
+  sortOrder Int       @default(0)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
