@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useMockAuth } from '@/components/providers/MockAuthProvider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +28,7 @@ export default function SignInPage() {
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo | null>(null);
   const [showBusinessCard, setShowBusinessCard] = useState(false);
+  const { signInWithEmail, signInWithGoogle } = useMockAuth();
 
   // Lookup business info when email changes (debounced)
   useEffect(() => {
@@ -74,29 +75,25 @@ export default function SignInPage() {
     setIsLoading(true);
 
     try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError(result.error);
-      } else {
-        // Redirect based on role
-        const userRes = await fetch('/api/auth/session');
-        const session = await userRes.json();
-        const role = (session?.user as any)?.role;
-        if (role === 'ADMIN' || role === 'SUPER_ADMIN') {
-          router.push('/admin/dashboard');
-        } else {
-          router.push('/');
-        }
-        router.refresh();
-      }
+      await signInWithEmail(email, password);
+      // Redirect based on role (Mock sets role to ADMIN)
+      router.push('/admin/dashboard');
+      router.refresh();
     } catch (err) {
       setError('Something went wrong. Please try again.');
     } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      await signInWithGoogle();
+      router.push('/admin/dashboard');
+      router.refresh();
+    } catch (err) {
+      setError('Google sign in failed');
       setIsLoading(false);
     }
   };
@@ -229,7 +226,7 @@ export default function SignInPage() {
             <Button
               variant="outline"
               className="w-full mt-4"
-              onClick={() => signIn('google', { callbackUrl: '/' })}
+              onClick={handleGoogleSignIn}
               disabled={isLoading || isLookingUp}
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
