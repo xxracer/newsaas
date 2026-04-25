@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 import { THEME_COLORS, LuxuryThemeId, DEFAULT_PAGES } from '@/lib/firebase-mock';
 import { BUSINESS_TYPES, getBusinessType } from '@/lib/business-types';
 import { getThemesForBusinessType, getDefaultThemeIdForBusinessType, getThemeById, NicheTheme } from '@/lib/themes';
@@ -17,16 +16,16 @@ type SetupStep = 'business' | 'business-type' | 'theme' | 'domain' | 'complete';
 
 export default function StudioSetupPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
 
   const [currentStep, setCurrentStep] = useState<SetupStep>('business-type');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [studioId, setStudioId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     businessName: '',
     businessType: 'waxing' as string,
-    email: session?.user?.email || '',
+    email: '',
     phone: '',
     address: '',
     city: '',
@@ -36,18 +35,6 @@ export default function StudioSetupPage() {
     theme: getDefaultThemeIdForBusinessType('waxing') as LuxuryThemeId,
     domain: '',
   });
-
-  useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin?callbackUrl=/studio/setup');
-    }
-  }, [status, router]);
-
-  useEffect(() => {
-    if (session?.user?.email && !formData.email) {
-      setFormData((prev) => ({ ...prev, email: session.user.email as string }));
-    }
-  }, [session]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -59,26 +46,43 @@ export default function StudioSetupPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/studios/setup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          businessName: formData.businessName,
-          businessType: formData.businessType,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zip: formData.zip,
-          country: formData.country,
-          themeId: formData.theme,
-        }),
-      });
+      const mockStudioId = 'studio-' + Date.now();
+      const studioData = {
+        id: mockStudioId,
+        businessName: formData.businessName,
+        businessType: formData.businessType,
+        email: formData.email,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zip: formData.zip,
+        country: formData.country,
+        theme: {
+          id: formData.theme,
+          name: getThemeById(formData.theme)?.name || formData.theme,
+          description: getThemeById(formData.theme)?.description || '',
+        },
+        colors: THEME_COLORS[formData.theme],
+        domain: '',
+        stripeAccountId: null,
+        stripeConnected: false,
+        bookingBufferMinutes: 15,
+        maxAdvanceDays: 60,
+        timezone: 'America/New_York',
+        currency: 'USD',
+        isActive: true,
+        isPublished: false,
+        pages: DEFAULT_PAGES,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save studio');
+      localStorage.setItem('mock_studio_' + mockStudioId, JSON.stringify(studioData));
+      localStorage.setItem('mock_user_studio_id', mockStudioId);
+      localStorage.setItem('waxing-studio-theme', formData.theme);
 
+      setStudioId(mockStudioId);
       setCurrentStep('theme');
     } catch (err: any) {
       setError(err.message || 'Failed to create studio');
@@ -91,31 +95,18 @@ export default function StudioSetupPage() {
     const bt = getBusinessType(formData.businessType);
     const effectiveTheme = formData.theme || bt?.defaultThemeId || 'waxing-rose-gold';
 
-    try {
-      const res = await fetch('/api/studios/setup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          businessName: formData.businessName,
-          businessType: formData.businessType,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zip: formData.zip,
-          country: formData.country,
-          themeId: effectiveTheme,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save theme');
-
-      setCurrentStep('domain');
-    } catch (err: any) {
-      setError(err.message || 'Failed to save theme');
+    if (studioId) {
+      const studioData = JSON.parse(localStorage.getItem('mock_studio_' + studioId) || '{}');
+      studioData.theme = {
+        id: effectiveTheme,
+        name: getThemeById(effectiveTheme)?.name || effectiveTheme,
+        description: getThemeById(effectiveTheme)?.description || '',
+      };
+      studioData.colors = THEME_COLORS[effectiveTheme];
+      localStorage.setItem('mock_studio_' + studioId, JSON.stringify(studioData));
+      localStorage.setItem('waxing-studio-theme', effectiveTheme);
     }
+    setCurrentStep('domain');
   };
 
   const handleDomainSubmit = async (e: React.FormEvent) => {
@@ -124,26 +115,13 @@ export default function StudioSetupPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/studios/setup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          businessName: formData.businessName,
-          businessType: formData.businessType,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zip: formData.zip,
-          country: formData.country,
-          themeId: formData.theme,
-          domain: formData.domain,
-        }),
-      });
+      if (!studioId) throw new Error('No studio ID found');
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save domain');
+      const studioData = JSON.parse(localStorage.getItem('mock_studio_' + studioId) || '{}');
+      studioData.domain = formData.domain.toLowerCase().replace('www.', '');
+      studioData.isPublished = true;
+      studioData.updatedAt = new Date().toISOString();
+      localStorage.setItem('mock_studio_' + studioId, JSON.stringify(studioData));
 
       setCurrentStep('complete');
     } catch (err: any) {
@@ -152,14 +130,6 @@ export default function StudioSetupPage() {
       setIsLoading(false);
     }
   };
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   const renderStep = () => {
     switch (currentStep) {
@@ -348,12 +318,6 @@ export default function StudioSetupPage() {
                 )}
               </p>
             </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {availableThemes.map((theme: NicheTheme) => (
