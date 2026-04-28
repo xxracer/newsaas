@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,7 @@ export default function EditServicePage() {
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [businessType, setBusinessType] = useState('waxing');
   const [formData, setFormData] = useState<ServiceFormData>({
     name: '',
     slug: '',
@@ -52,10 +53,31 @@ export default function EditServicePage() {
     sortOrder: '0',
   });
 
-  useState(() => {
+  useEffect(() => {
+    // Detect business type from studio
+    let bt = 'waxing';
+    const storedUser = localStorage.getItem('mock_user');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user?.studioId) {
+          const studioData = localStorage.getItem('mock_studio_' + user.studioId);
+          if (studioData) {
+            const studio = JSON.parse(studioData);
+            if (studio.businessType) {
+              bt = studio.businessType;
+              setBusinessType(studio.businessType);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error reading studio data:', e);
+      }
+    }
+
     // Fetch categories and service data in parallel
     Promise.all([
-      fetch('/api/services/categories').then((res) => res.ok ? res.json() : []),
+      fetch(`/api/services/categories?businessType=${encodeURIComponent(bt)}`).then((res) => res.ok ? res.json() : []),
       fetch(`/api/services/${serviceId}`).then((res) => res.ok ? res.json() : null),
     ])
       .then(([cats, service]) => {
@@ -79,7 +101,7 @@ export default function EditServicePage() {
       })
       .catch(() => setError('Failed to load service'))
       .finally(() => setIsFetching(false));
-  });
+  }, [serviceId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -121,7 +143,7 @@ export default function EditServicePage() {
   if (isFetching) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-pink-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -310,7 +332,7 @@ export default function EditServicePage() {
               <Button type="button" variant="outline" onClick={() => router.back()}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-pink-600 hover:bg-pink-700" disabled={isLoading}>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

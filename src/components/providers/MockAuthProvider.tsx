@@ -31,7 +31,45 @@ export default function MockAuthProvider({ children }: { children: ReactNode }) 
 
   useEffect(() => {
     // Check for stored user session
-    const storedUser = localStorage.getItem('mock_user');
+    let storedUser = localStorage.getItem('mock_user');
+
+    // Auto-seed demo data if nothing exists
+    if (!storedUser) {
+      const demoStudioId = 'demo-studio-1';
+      const demoUser: User = {
+        uid: 'demo-admin-1',
+        email: 'admin@demo.com',
+        displayName: 'Demo Admin',
+        photoURL: 'https://ui-avatars.com/api/?name=Demo+Admin&background=2563eb&color=fff',
+        role: 'ADMIN',
+        studioId: demoStudioId,
+        firstName: 'Demo',
+        lastName: 'Admin',
+      };
+      localStorage.setItem('mock_user', JSON.stringify(demoUser));
+      storedUser = JSON.stringify(demoUser);
+
+      // Seed demo studio
+      localStorage.setItem(
+        `mock_studio_${demoStudioId}`,
+        JSON.stringify({
+          id: demoStudioId,
+          businessName: 'Viva La Beauty',
+          businessType: 'waxing',
+          domain: 'demo.local',
+          primaryColor: '#d946ef',
+          phone: '(281) 555-0123',
+          email: 'info@vivalabeauty.com',
+          address: '123 Beauty Lane',
+          city: 'Sugar Land',
+          state: 'TX',
+          zip: '77478',
+          isActive: true,
+          isPublished: true,
+        })
+      );
+    }
+
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }

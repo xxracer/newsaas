@@ -57,7 +57,7 @@ export default function AdminDashboard() {
 
         // Check if studio has been fully set up
         if (!studioData.businessName) {
-          setHasStudio(false);
+          setHasStudio(true);
           setStats(null);
           setIsLoading(false);
           return;
@@ -105,7 +105,7 @@ export default function AdminDashboard() {
   if (authLoading || isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-pink-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
       <div className="p-6 lg:p-8">
         <Card className="max-w-2xl mx-auto">
           <CardHeader className="text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center mx-auto mb-4">
               <Store className="w-8 h-8 text-white" />
             </div>
             <CardTitle className="font-heading text-2xl">¡Bienvenido a WaxingSetudios!</CardTitle>
@@ -127,8 +127,8 @@ export default function AdminDashboard() {
           <CardContent className="space-y-6">
             <div className="grid gap-4">
               <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-                <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center shrink-0">
-                  <span className="text-pink-600 font-bold">1</span>
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <span className="text-blue-600 font-bold">1</span>
                 </div>
                 <div>
                   <p className="font-medium">Información de tu Estudio</p>
@@ -136,8 +136,8 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-                <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center shrink-0">
-                  <span className="text-pink-600 font-bold">2</span>
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <span className="text-blue-600 font-bold">2</span>
                 </div>
                 <div>
                   <p className="font-medium">Elige tu Diseño</p>
@@ -145,8 +145,8 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg">
-                <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center shrink-0">
-                  <span className="text-pink-600 font-bold">3</span>
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                  <span className="text-blue-600 font-bold">3</span>
                 </div>
                 <div>
                   <p className="font-medium">Configura tu Dominio</p>
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
               </div>
             </div>
             <Link href="/studio/setup">
-              <Button className="w-full bg-gradient-to-r from-pink-600 to-rose-600 hover:opacity-90 py-6 text-lg">
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 py-6 text-lg">
                 <Plus className="w-5 h-5 mr-2" />
                 Crear mi Estudio
               </Button>
@@ -178,7 +178,7 @@ export default function AdminDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Loader2 className="h-8 w-8 animate-spin mx-auto text-pink-600" />
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-blue-600" />
           </CardContent>
         </Card>
       </div>
@@ -190,8 +190,8 @@ export default function AdminDashboard() {
       title: "Citas Hoy",
       value: stats.todayAppointments,
       icon: Calendar,
-      color: "text-pink-600",
-      bgColor: 'bg-pink-50',
+      color: "text-blue-600",
+      bgColor: 'bg-blue-50',
       change: '+12%',
       changeType: 'up' as const,
     },
@@ -238,7 +238,7 @@ export default function AdminDashboard() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/studio/demo/home" target="_blank">
-            <Button className="gap-2 bg-gradient-to-r from-pink-600 to-rose-600">
+            <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
               <Globe className="w-4 h-4" />
               Ver Website
               <ExternalLink className="w-3 h-3" />
@@ -340,8 +340,8 @@ export default function AdminDashboard() {
             <Link href="/admin/services">
               <Card className="cursor-pointer hover:shadow-md transition-shadow">
                 <CardContent className="p-4 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center">
-                    <Scissors className="w-5 h-5 text-pink-600" />
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <Scissors className="w-5 h-5 text-blue-600" />
                   </div>
                   <div className="flex-1">
                     <p className="font-medium">Gestionar Servicios</p>
@@ -411,8 +411,8 @@ export default function AdminDashboard() {
                 {stats.recentAppointments.map((appointment) => (
                   <div key={appointment.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
-                        <span className="text-pink-600 font-semibold text-sm">
+                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                        <span className="text-blue-600 font-semibold text-sm">
                           {appointment.clientName.split(' ').map(n => n[0]).join('')}
                         </span>
                       </div>

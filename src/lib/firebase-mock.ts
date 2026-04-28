@@ -166,25 +166,74 @@ export const PAGE_TEMPLATES = {
   },
 };
 
-export const SEO_TIPS = {
+export const FAQ_DATA: Record<string, { question: string; answer: string }[]> = {
   waxing: [
-    { question: '¿Cuánto dura la cera brasileña?', answer: 'Los resultados de la cera brasileña suelen durar entre 3 y 4 semanas, dependiendo de tu ciclo de crecimiento del vello.' },
-    { question: '¿Duele la cera brasileña?', answer: 'La molestia es mínima y temporal. Nuestras esteticistas están entrenadas para hacer la experiencia lo más cómoda posible.' },
-    { question: '¿Cómo prepararse para una cera brasileña?', answer: 'Deja crecer el vello al menos 1/4 de pulgada (como un grano de arroz). Exfolia suavemente 24 horas antes.' },
-    { question: '¿Puedo waxearme durante mi período?', answer: 'Sí, pero puede ser más sensible. Toma un analgésico 30 minutos antes y usa un tampón o copa menstrual.' },
-    { question: '¿Qué es mejor, cera caliente o fría?', answer: 'La cera caliente es mejor para áreas sensibles como el bikini. La cera fría funciona bien en piernas y brazos.' },
+    { question: 'How long does a Brazilian wax last?', answer: 'Results typically last 3-4 weeks depending on your hair growth cycle.' },
+    { question: 'Does waxing hurt?', answer: 'Discomfort is minimal and temporary. Our estheticians are trained to make the experience as comfortable as possible.' },
+    { question: 'How do I prepare for a wax?', answer: 'Let hair grow to at least 1/4 inch (rice-grain size). Exfoliate gently 24 hours before.' },
+    { question: 'Can I wax during my period?', answer: 'Yes, but you may be more sensitive. Take a pain reliever 30 minutes before and use a tampon or menstrual cup.' },
+    { question: 'What is the difference between hot and cold wax?', answer: 'Hot wax is better for sensitive areas like bikini. Cold wax works well on legs and arms.' },
   ],
-  aftercare: [
-    { question: '¿Cómo cuidar mi piel después de la cera?', answer: 'Evita el sol, saunas y ejercicio intenso por 24 horas. Usa ropa holgada y aplica aloe vera.' },
-    { question: '¿Cuándo debo exfoliar después de la cera?', answer: 'Espera 48 horas antes de exfoliar. Luego exfolia 2-3 veces por semana para prevenir vellos encarnados.' },
-    { question: '¿Por qué salen granitos después de la cera?', answer: 'Es una reacción temporal de los folículos. Usa productos calmantes como aloe vera o aceite de árbol de té diluido.' },
+  barber: [
+    { question: 'Do I need an appointment?', answer: 'Walk-ins are welcome, but appointments are recommended for weekends and peak hours.' },
+    { question: 'What is a hot towel shave?', answer: 'A traditional straight-razor shave with hot towels to open pores and soften beard hair for the smoothest finish.' },
+    { question: 'How often should I get a haircut?', answer: 'For short styles, every 2-3 weeks. For longer styles, every 4-6 weeks is usually sufficient.' },
+    { question: 'Do you cut kids hair?', answer: 'Yes! We offer kids cuts for children under 12 in a friendly, patient environment.' },
+    { question: 'What is gray blending?', answer: 'A subtle coloring technique that blends away gray naturally without a drastic change.' },
   ],
-  local: [
-    { question: '¿Necesito cita previa?', answer: 'Recomendamos reservar con anticipación, especialmente fines de semana. Aceptamos walk-ins según disponibilidad.' },
-    { question: '¿Qué métodos de pago aceptan?', answer: 'Aceptamos efectivo, tarjetas de crédito/débito, y gift cards. También procesamos pagos sin contacto.' },
-    { question: '¿Hay estacionamento?', answer: 'Sí, contamos con estacionamento gratuito para clientas en el frente del local.' },
+  nails: [
+    { question: 'How long do gel manicures last?', answer: 'Gel manicures typically last 2-3 weeks without chipping or peeling.' },
+    { question: 'What is the difference between acrylic and dip powder?', answer: 'Acrylic uses a liquid monomer and powder polymer. Dip powder uses pigmented powder and resin for a lighter, more natural feel.' },
+    { question: 'How do I care for my nails after a manicure?', answer: 'Wear gloves when cleaning, moisturize daily, and avoid using nails as tools to prevent lifting.' },
+    { question: "Can I get a pedicure if I have athlete's foot?", answer: 'Please wait until the condition is fully treated to protect our staff and other clients.' },
+    { question: 'How long does nail art take?', answer: 'Basic designs take 10-15 minutes. Custom hand-painted art can take 30-45 minutes depending on complexity.' },
+  ],
+  hair: [
+    { question: 'How often should I color my hair?', answer: 'Root touch-ups every 4-6 weeks. Full color refresh every 8-12 weeks depending on the technique.' },
+    { question: 'What is balayage?', answer: 'A hand-painted highlighting technique that creates a sun-kissed, natural-looking color with softer regrowth lines.' },
+    { question: 'Will a keratin treatment straighten my hair?', answer: 'Keratin treatments reduce frizz and improve manageability. They relax curl slightly but do not fully straighten hair.' },
+    { question: 'How do I maintain my haircut between visits?', answer: 'Use quality products recommended by your stylist, minimize heat styling, and get bang trims every 2-3 weeks.' },
+    { question: 'Can I wash my hair after coloring?', answer: 'Wait at least 48 hours before washing to allow the color to fully set and last longer.' },
+  ],
+  tattoo: [
+    { question: 'Does getting a tattoo hurt?', answer: 'Pain varies by location and personal tolerance. Most describe it as a scratching or stinging sensation.' },
+    { question: 'How do I care for a new tattoo?', answer: 'Keep it clean and moisturized. Avoid swimming, sun exposure, and tight clothing for 2-3 weeks.' },
+    { question: 'How long does a tattoo take to heal?', answer: 'Surface healing takes 2-3 weeks. Full healing under the skin takes about 3 months.' },
+    { question: 'Can you cover up an old tattoo?', answer: 'Yes, we specialize in cover-ups. A consultation is required to assess the existing tattoo and design options.' },
+    { question: 'What is the minimum age for a tattoo?', answer: 'You must be 18 or older with valid photo ID. No exceptions.' },
+  ],
+  massage: [
+    { question: 'What should I wear for a massage?', answer: 'Undress to your comfort level. You will be properly draped with a sheet at all times.' },
+    { question: 'How often should I get a massage?', answer: 'For general wellness, once a month is ideal. For chronic pain, weekly or bi-weekly may be recommended.' },
+    { question: 'Can I get a massage if I am pregnant?', answer: 'Yes, prenatal massage is available after the first trimester. Please inform us when booking.' },
+    { question: 'Should I tip my massage therapist?', answer: 'Gratuities are appreciated but not required. 15-20% is standard if you choose to tip.' },
+    { question: 'What is the difference between Swedish and deep tissue?', answer: 'Swedish uses lighter pressure for relaxation. Deep tissue targets deeper muscle layers for pain relief.' },
+  ],
+  skincare: [
+    { question: 'How often should I get a facial?', answer: 'Monthly facials are ideal for maintaining healthy skin and addressing concerns consistently.' },
+    { question: 'What is microneedling?', answer: 'A treatment using tiny needles to stimulate collagen production, improving texture, scars, and fine lines.' },
+    { question: 'Is there downtime after a chemical peel?', answer: 'Light peels have minimal downtime. Medium to deep peels may cause peeling for 3-7 days.' },
+    { question: 'Can I wear makeup after a facial?', answer: 'It is best to wait 24 hours to let your skin breathe and absorb the full benefits.' },
+    { question: 'What skin type do you treat?', answer: 'We treat all skin types and concerns with customized treatments tailored to your needs.' },
+  ],
+  'brow-lash': [
+    { question: 'How long do lash extensions last?', answer: 'Classic extensions last 2-3 weeks. Volume lashes may last 3-4 weeks with proper care.' },
+    { question: 'Can I get my lashes wet?', answer: 'Avoid water and steam for the first 24-48 hours. After that, gentle cleansing is fine.' },
+    { question: 'What is brow lamination?', answer: 'A chemical treatment that straightens and sets brow hairs in place, giving a fuller, groomed look.' },
+    { question: 'How long does microblading last?', answer: 'Results typically last 1-2 years depending on skin type and aftercare.' },
+    { question: 'Will lash extensions damage my natural lashes?', answer: 'When applied correctly by a trained technician, extensions do not damage natural lashes.' },
+  ],
+  tanning: [
+    { question: 'How long does a spray tan last?', answer: 'A spray tan typically lasts 5-7 days with proper care and moisturization.' },
+    { question: 'What should I wear during a spray tan?', answer: 'Wear dark, loose clothing. You may wear undergarments or a swimsuit based on your comfort.' },
+    { question: 'Can I shower after a spray tan?', answer: 'Wait at least 8 hours before showering for standard tans, 1-3 hours for express formulas.' },
+    { question: 'Will a spray tan protect me from the sun?', answer: 'No. Spray tans do not contain SPF. Always wear sunscreen when outdoors.' },
+    { question: 'How do I prepare for a spray tan?', answer: 'Exfoliate and shave 24 hours before. Avoid lotions, deodorant, and perfumes on the day of your tan.' },
   ],
 };
+
+// Legacy export name for backward compatibility
+export const SEO_TIPS = FAQ_DATA;
 
 export const DEFAULT_PAGES = [
   { id: 'home', enabled: true, order: 1 },

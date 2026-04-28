@@ -1,20 +1,32 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getDemoServices } from '@/lib/demo-data';
 import { getServerSession } from 'next-auth';
 import authOptions from '@/lib/auth/config';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const businessType = searchParams.get('businessType');
+
+    const where: any = { isActive: true };
+    if (businessType) {
+      where.category = { businessType };
+    }
+
     const services = await prisma.service.findMany({
-      where: { isActive: true },
+      where,
       include: { category: true },
       orderBy: [{ category: { sortOrder: 'asc' } }, { sortOrder: 'asc' }],
     });
 
     return NextResponse.json(services);
   } catch (error) {
-    console.error('Failed to fetch services:', error);
-    return NextResponse.json({ error: 'Failed to fetch services' }, { status: 500 });
+    console.error('Failed to fetch services from DB, returning demo data:', error);
+    const { searchParams } = new URL(request.url);
+    const businessType = searchParams.get('businessType');
+    const demoServices = getDemoServices(businessType);
+    return NextResponse.json(demoServices);
   }
 }
 

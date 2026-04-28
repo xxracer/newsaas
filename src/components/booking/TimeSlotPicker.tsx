@@ -2,10 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useBooking } from '@/hooks/use-booking';
-import { useTheme } from '@/components/providers/ThemeProvider';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Check, ArrowRight } from 'lucide-react';
 import { format, addMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, isToday, isBefore, startOfDay } from 'date-fns';
 
 interface TimeSlot {
@@ -13,13 +10,47 @@ interface TimeSlot {
   available: boolean;
 }
 
+const businessTypeColors: Record<string, string> = {
+  waxing: '#d946ef',
+  barber: '#3b82f6',
+  nails: '#ec4899',
+  hair: '#8b5cf6',
+  tattoo: '#1f2937',
+  massage: '#059669',
+  skincare: '#f59e0b',
+  'brow-lash': '#db2777',
+  tanning: '#d97706',
+  default: '#2563eb',
+};
+
 export function TimeSlotPicker() {
   const { state, setSelectedDate, setSelectedTime, setStep, totalDuration } = useBooking();
-  const { colors } = useTheme();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [studioBusinessType, setStudioBusinessType] = useState<string>('waxing');
 
+  useEffect(() => {
+    const storedUser = localStorage.getItem('mock_user');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user?.studioId) {
+          const studioData = localStorage.getItem('mock_studio_' + user.studioId);
+          if (studioData) {
+            const studio = JSON.parse(studioData);
+            if (studio.businessType) {
+              setStudioBusinessType(studio.businessType);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error reading studio data:', e);
+      }
+    }
+  }, []);
+
+  const primaryColor = businessTypeColors[studioBusinessType] || businessTypeColors.default;
   const today = startOfDay(new Date());
 
   useEffect(() => {
@@ -30,34 +61,32 @@ export function TimeSlotPicker() {
 
   const fetchAvailability = async () => {
     if (!state.selectedDate) return;
-
     setIsLoading(true);
     try {
       const dateStr = format(state.selectedDate, 'yyyy-MM-dd');
       const res = await fetch(`/api/appointments/availability?date=${dateStr}&duration=${totalDuration}`);
-
       if (res.ok) {
         const data = await res.json();
         setTimeSlots(data.slots || []);
       } else {
-        // Generate mock slots for development
-        const slots: TimeSlot[] = [];
-        for (let hour = 9; hour < 18; hour++) {
-          for (let min = 0; min < 60; min += 30) {
-            const time = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-            slots.push({
-              time,
-              available: Math.random() > 0.3, // Mock availability
-            });
-          }
-        }
-        setTimeSlots(slots);
+        generateFallbackSlots();
       }
     } catch (error) {
-      console.error('Failed to fetch availability:', error);
+      generateFallbackSlots();
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const generateFallbackSlots = () => {
+    const slots: TimeSlot[] = [];
+    for (let hour = 9; hour < 18; hour++) {
+      for (let min = 0; min < 60; min += 30) {
+        const time = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+        slots.push({ time, available: Math.random() > 0.3 });
+      }
+    }
+    setTimeSlots(slots);
   };
 
   const days = eachDayOfInterval({
@@ -65,147 +94,196 @@ export function TimeSlotPicker() {
     end: endOfMonth(currentMonth),
   });
 
-  const previousMonth = () => {
-    setCurrentMonth(addMonths(currentMonth, -1));
-  };
+  const previousMonth = () => setCurrentMonth(addMonths(currentMonth, -1));
+  const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
+  const isDateDisabled = (date: Date) => isBefore(date, today);
 
-  const nextMonth = () => {
-    setCurrentMonth(addMonths(currentMonth, 1));
-  };
-
-  const isDateDisabled = (date: Date) => {
-    return isBefore(date, today);
-  };
+  const weekDays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
   return (
-    <div className="grid lg:grid-cols-2 gap-6">
+    <div className="grid lg:grid-cols-12 gap-8">
       {/* Calendar */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={previousMonth}
-              disabled={isSameMonth(currentMonth, new Date())}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <CardTitle className="text-lg">
-              {format(currentMonth, 'MMMM yyyy')}
-            </CardTitle>
-            <Button variant="ghost" size="icon" onClick={nextMonth}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Day headers */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-              <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
-                {day}
-              </div>
-            ))}
-          </div>
+      <div className="lg:col-span-7 bg-white rounded-2xl p-6 md:p-8 border border-gray-100">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <button
+            onClick={previousMonth}
+            disabled={isSameMonth(currentMonth, new Date())}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
+              isSameMonth(currentMonth, new Date())
+                ? 'text-gray-200 cursor-not-allowed'
+                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+            }`}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h3 className="text-base font-bold text-gray-900 tracking-tight">
+            {format(currentMonth, 'MMMM yyyy')}
+          </h3>
+          <button
+            onClick={nextMonth}
+            className="w-10 h-10 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 flex items-center justify-center transition-colors"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
 
-          {/* Calendar grid */}
-          <div className="grid grid-cols-7 gap-1">
-            {/* Empty cells for days before the start of month */}
-            {Array.from({ length: startOfMonth(currentMonth).getDay() }).map((_, i) => (
-              <div key={`empty-${i}`} />
-            ))}
+        {/* Day Headers */}
+        <div className="grid grid-cols-7 gap-1 mb-3">
+          {weekDays.map((day) => (
+            <div key={day} className="text-center text-[11px] font-bold text-gray-300 uppercase tracking-wider py-2">
+              {day}
+            </div>
+          ))}
+        </div>
 
-            {days.map((day) => {
-              const disabled = isDateDisabled(day);
-              const selected = state.selectedDate && isSameDay(day, state.selectedDate);
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-1.5">
+          {Array.from({ length: startOfMonth(currentMonth).getDay() }).map((_, i) => (
+            <div key={`empty-${i}`} />
+          ))}
 
-              return (
-                <Button
-                  key={day.toISOString()}
-                  variant="ghost"
-                  size="sm"
-                  disabled={disabled}
-                  onClick={() => setSelectedDate(day)}
-                  className={`h-10 w-10 p-0 font-normal ${
-                    selected
-                      ? 'text-white hover:opacity-90'
-                      : isToday(day)
-                      ? 'border'
-                      : ''
-                  }`}
-                  style={selected
-                    ? { backgroundColor: colors.primary }
-                    : isToday(day)
-                    ? { borderColor: colors.primary, color: colors.primary }
-                    : {}}
-                >
-                  {format(day, 'd')}
-                </Button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+          {days.map((day) => {
+            const disabled = isDateDisabled(day);
+            const selected = state.selectedDate && isSameDay(day, state.selectedDate);
+            const isTodayDate = isToday(day);
+
+            return (
+              <button
+                key={day.toISOString()}
+                disabled={disabled}
+                onClick={() => setSelectedDate(day)}
+                className={`
+                  aspect-square w-full rounded-xl font-semibold text-sm transition-all duration-200
+                  ${disabled ? 'text-gray-200 cursor-not-allowed' : 'hover:bg-gray-50'}
+                  ${selected ? 'text-white shadow-md scale-105' : ''}
+                  ${isTodayDate && !selected ? 'ring-1' : ''}
+                `}
+                style={
+                  selected
+                    ? { backgroundColor: primaryColor, boxShadow: `0 4px 14px ${primaryColor}35` }
+                    : isTodayDate
+                    ? { boxShadow: `inset 0 0 0 2px ${primaryColor}`, color: primaryColor }
+                    : { color: '#374151' }
+                }
+              >
+                {format(day, 'd')}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Time Slots */}
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5" style={{ color: colors.primary }} />
-            <CardTitle className="text-lg">
-              {state.selectedDate
-                ? format(state.selectedDate, 'EEEE, MMMM d')
-                : 'Select a date'}
-            </CardTitle>
+      <div className="lg:col-span-5 space-y-6">
+        <div className="bg-white rounded-2xl p-6 md:p-8 border border-gray-100">
+          {/* Header */}
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ backgroundColor: `${primaryColor}10` }}
+            >
+              <CalendarIcon className="w-5 h-5" style={{ color: primaryColor }} />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 text-base">
+                {state.selectedDate
+                  ? format(state.selectedDate, 'EEEE, MMMM d')
+                  : 'Select a Date'}
+              </h3>
+              <p className="text-sm text-gray-400">Choose your preferred time</p>
+            </div>
           </div>
-        </CardHeader>
-        <CardContent>
+
+          {/* Time Slots Grid */}
           {!state.selectedDate ? (
-            <p className="text-sm text-gray-500 text-center py-8">
-              Please select a date to see available times
-            </p>
+            <div className="text-center py-14">
+              <div
+                className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4 bg-gray-50"
+              >
+                <Clock className="w-7 h-7 text-gray-300" />
+              </div>
+              <p className="text-gray-400 font-medium text-sm">Select a date to see available times</p>
+            </div>
           ) : isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" style={{ color: colors.primary }} />
+            <div className="flex flex-col items-center justify-center py-14 gap-4">
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center animate-pulse"
+                style={{ backgroundColor: `${primaryColor}12` }}
+              >
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: primaryColor, opacity: 0.3 }} />
+              </div>
+              <p className="text-gray-400 text-sm">Checking availability...</p>
             </div>
           ) : timeSlots.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">
-              No available times for this date
-            </p>
+            <div className="text-center py-14">
+              <p className="text-gray-400 text-sm">No available times for this date</p>
+            </div>
           ) : (
             <div className="grid grid-cols-3 gap-2">
-              {timeSlots.map((slot) => (
-                <Button
-                  key={slot.time}
-                  variant={state.selectedTime === slot.time ? 'default' : 'outline'}
-                  disabled={!slot.available}
-                  onClick={() => setSelectedTime(slot.time)}
-                  style={state.selectedTime === slot.time ? { backgroundColor: colors.primary, color: '#ffffff' } : {}}
-                >
-                  {slot.time}
-                </Button>
-              ))}
+              {timeSlots.map((slot) => {
+                const isSelected = state.selectedTime === slot.time;
+                return (
+                  <button
+                    key={slot.time}
+                    disabled={!slot.available}
+                    onClick={() => setSelectedTime(slot.time)}
+                    className={`
+                      py-2.5 px-1 rounded-xl font-semibold text-sm transition-all duration-200 border
+                      ${!slot.available ? 'bg-gray-50 text-gray-300 cursor-not-allowed border-transparent' : 'border-gray-100'}
+                      ${isSelected ? 'text-white shadow-lg scale-105 border-transparent' : 'bg-white text-gray-700 hover:border-gray-200 hover:shadow-sm'}
+                    `}
+                    style={isSelected ? { backgroundColor: primaryColor, boxShadow: `0 4px 14px ${primaryColor}35` } : {}}
+                  >
+                    {slot.time}
+                  </button>
+                );
+              })}
             </div>
           )}
+        </div>
 
-          {state.selectedTime && (
-            <div className="mt-6 pt-6 border-t">
-              <p className="text-sm text-gray-600 mb-4">
-                Selected: <span className="font-medium">{state.selectedTime}</span>
-              </p>
-              <Button
-                onClick={() => setStep(3)}
-                className="w-full hover:opacity-90"
-                style={{ backgroundColor: colors.primary, color: '#ffffff' }}
-              >
-                Continue to Contact Info
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
+        {/* Selected summary + Continue */}
+        {state.selectedTime && (
+          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <div
+              className="flex items-center justify-between p-3 rounded-xl mb-5"
+              style={{ backgroundColor: `${primaryColor}06` }}
+            >
+              <div className="flex items-center gap-3">
+                <Check className="w-5 h-5" style={{ color: primaryColor }} />
+                <span className="font-medium text-gray-900 text-sm">
+                  {state.selectedDate ? format(state.selectedDate, 'MMM d, yyyy') : ''} at {state.selectedTime}
+                </span>
+              </div>
+              <div className="flex items-center gap-1 text-sm text-gray-400">
+                <Clock className="w-3.5 h-3.5" />
+                {totalDuration} min
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setStep(1)}
+                className="px-6 py-3 rounded-xl font-semibold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors text-sm"
+              >
+                Back
+              </button>
+              <button
+                onClick={() => setStep(3)}
+                className="flex-1 py-3 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[0.98]"
+                style={{
+                  backgroundColor: primaryColor,
+                  boxShadow: `0 4px 14px ${primaryColor}35`,
+                }}
+              >
+                Continue
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

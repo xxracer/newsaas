@@ -38,7 +38,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-pink-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -92,7 +92,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b">
             <Link href="/admin/dashboard" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center">
                 <Scissors className="h-4 w-4 text-white" />
               </div>
               <span className="font-bold text-lg text-gray-900">WaxingSetudios</span>
@@ -111,7 +111,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   className={cn(
                     'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-pink-50 text-pink-600'
+                      ? 'bg-blue-50 text-blue-600'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   )}
                 >
@@ -128,7 +128,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="w-full justify-start gap-3 h-auto py-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-pink-100 text-pink-600 text-sm">
+                    <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
                       {initials}
                     </AvatarFallback>
                   </Avatar>

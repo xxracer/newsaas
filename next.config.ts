@@ -7,7 +7,6 @@ const nextConfig = {
         // Public site pages (formerly in (main) route group)
         { source: '/about', destination: '/site/about' },
         { source: '/services', destination: '/site/services' },
-        { source: '/book', destination: '/site/book' },
         { source: '/schedule', destination: '/site/schedule' },
         { source: '/specials', destination: '/site/specials' },
         { source: '/training', destination: '/site/training' },
@@ -61,6 +60,18 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'cdn.shopify.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
         port: '',
         pathname: '/**',
       },

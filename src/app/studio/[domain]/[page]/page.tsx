@@ -30,6 +30,7 @@ import { PAGE_TEMPLATES, SEO_TIPS, DEFAULT_PAGES, LuxuryThemeId, THEME_COLORS } 
 
 interface StudioData {
   businessName: string;
+  businessType?: string;
   tagline?: string;
   theme?: { id: string; name: string };
   colors?: Record<string, string>;
@@ -83,7 +84,14 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
     // Get studio from localStorage (demo) or URL params
     const storedStudios = Object.keys(localStorage)
       .filter(key => key.startsWith('mock_studio_'))
-      .map(key => JSON.parse(localStorage.getItem(key) || '{}'));
+      .map(key => {
+        try {
+          return JSON.parse(localStorage.getItem(key) || '{}');
+        } catch {
+          return null;
+        }
+      })
+      .filter(Boolean);
 
     if (storedStudios.length > 0) {
       const studioData = storedStudios[0];
@@ -156,10 +164,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
     { name: 'Ingrown Hair Serum', price: '$35', category: 'Tratamiento', image: '✨' },
   ];
 
-  const faqs = [
-    ...SEO_TIPS.waxing,
-    ...SEO_TIPS.aftercare,
-  ];
+  const faqList = (SEO_TIPS[studio?.businessType || 'waxing'] || SEO_TIPS.waxing);
 
   // Get enabled pages for navigation
   const enabledPages = studio?.pages?.filter(p => p.enabled) || DEFAULT_PAGES.filter(p => p.enabled);
@@ -170,6 +175,51 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
     if (!currentPageData || !currentPageData.sections) return true;
     const section = currentPageData.sections.find((s: any) => s.id === sectionId);
     return section ? section.enabled !== false : true;
+  };
+
+  const getPageTitle = (page: string) => {
+    const bt = studio?.businessType || 'waxing';
+    const labels: Record<string, Record<string, string>> = {
+      services: {
+        waxing: 'Our Waxing Services',
+        barber: 'Barber Shop Services',
+        nails: 'Nail Salon Services',
+        hair: 'Hair Salon Services',
+        tattoo: 'Tattoo Studio Services',
+        massage: 'Massage Spa Services',
+        skincare: 'Skin Care Services',
+        'brow-lash': 'Brow & Lash Services',
+        tanning: 'Tanning Salon Services',
+      },
+      about: {
+        default: 'About Us',
+      },
+      contact: {
+        default: 'Contact Us',
+      },
+      appointments: {
+        default: 'Book Your Appointment',
+      },
+      faq: {
+        default: 'Frequently Asked Questions',
+      },
+      products: {
+        default: 'Our Products',
+      },
+      gallery: {
+        default: 'Our Gallery',
+      },
+      portfolio: {
+        default: 'Our Portfolio',
+      },
+      packages: {
+        default: 'Our Packages',
+      },
+      'gift-cards': {
+        default: 'Gift Cards',
+      },
+    };
+    return labels[page]?.[bt] || labels[page]?.default || page;
   };
 
   const renderPageContent = () => {
@@ -200,7 +250,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                     Expertos en waxing y cuidado de la piel. Resultados suaves y duraderos en un ambiente luxury.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link href={getPath('appointments')}>
+                    <Link href={'/book'}>
                       <Button
                         size="lg"
                         className="rounded-full px-8 py-6 text-lg"
@@ -315,14 +365,14 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
       case 'services':
         return (
           <>
-            <section className="py-16" style={{ backgroundColor: colors?.background }}>
+            <section className="py-10" style={{ backgroundColor: colors?.background }}>
               <div className="container mx-auto px-4">
-                <div className="text-center mb-12">
-                  <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4" style={{ color: colors?.text }}>
-                    Servicios de Waxing
+                <div className="mb-8">
+                  <h1 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                    {getPageTitle('services')}
                   </h1>
-                  <p className="text-lg" style={{ color: colors?.textMuted }}>
-                    Elige el tratamiento perfecto para ti
+                  <p className="text-gray-500">
+                    Choose the perfect treatment for you
                   </p>
                 </div>
 
@@ -353,7 +403,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                             </span>
                           </div>
                         </div>
-                        <Link href={getPath('appointments')}>
+                        <Link href={'/book'}>
                           <Button
                             size="sm"
                             className="w-full mt-4"
@@ -370,10 +420,10 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                 {/* FAQ Section */}
                 <div className="max-w-3xl mx-auto mt-16">
                   <h2 className="font-heading text-2xl font-bold mb-6 text-center" style={{ color: colors?.text }}>
-                    Preguntas Frecuentes
+                    Frequently Asked Questions
                   </h2>
                   <div className="space-y-4">
-                    {SEO_TIPS.waxing.map((faq, idx) => (
+                    {(SEO_TIPS[studio?.businessType || 'waxing'] || SEO_TIPS.waxing).map((faq: any, idx: number) => (
                       <Card key={idx} style={{ borderColor: colors?.border, backgroundColor: colors?.surface }}>
                         <CardContent className="p-4">
                           <h3 className="font-semibold mb-2 flex items-center gap-2" style={{ color: colors?.text }}>
@@ -396,14 +446,14 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
       case 'gift-cards':
         return (
           <>
-            <section className="py-16" style={{ backgroundColor: colors?.background }}>
+            <section className="py-10" style={{ backgroundColor: colors?.background }}>
               <div className="container mx-auto px-4">
-                <div className="text-center mb-12">
-                  <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4" style={{ color: colors?.text }}>
-                    Gift Cards
+                <div className="mb-8">
+                  <h1 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                    {getPageTitle('gift-cards')}
                   </h1>
-                  <p className="text-lg" style={{ color: colors?.textMuted }}>
-                    El regalo perfecto para alguien especial
+                  <p className="text-gray-500">
+                    The perfect gift for someone special
                   </p>
                 </div>
 
@@ -477,14 +527,14 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
       case 'products':
         return (
           <>
-            <section className="py-16" style={{ backgroundColor: colors?.background }}>
+            <section className="py-10" style={{ backgroundColor: colors?.background }}>
               <div className="container mx-auto px-4">
-                <div className="text-center mb-12">
-                  <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4" style={{ color: colors?.text }}>
-                    Productos de Cuidado
+                <div className="mb-8">
+                  <h1 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                    {getPageTitle('products')}
                   </h1>
-                  <p className="text-lg" style={{ color: colors?.textMuted }}>
-                    Extiende tu experiencia de spa en casa
+                  <p className="text-gray-500">
+                    Extend your spa experience at home
                   </p>
                 </div>
 
@@ -547,15 +597,15 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
       case 'about':
         return (
           <>
-            <section className="py-16" style={{ backgroundColor: colors?.background }}>
+            <section className="py-10" style={{ backgroundColor: colors?.background }}>
               <div className="container mx-auto px-4">
                 <div className="max-w-3xl mx-auto">
-                  <div className="text-center mb-12">
-                    <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4" style={{ color: colors?.text }}>
-                      Sobre Nosotros
+                  <div className="mb-8">
+                    <h1 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                      {getPageTitle('about')}
                     </h1>
-                    <p className="text-lg" style={{ color: colors?.textMuted }}>
-                      Tu destino de confianza para waxing profesional
+                    <p className="text-gray-500">
+                      Your trusted destination for professional beauty services
                     </p>
                   </div>
 
@@ -629,15 +679,15 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
       case 'contact':
         return (
           <>
-            <section className="py-16" style={{ backgroundColor: colors?.background }}>
+            <section className="py-10" style={{ backgroundColor: colors?.background }}>
               <div className="container mx-auto px-4">
                 <div className="max-w-4xl mx-auto">
-                  <div className="text-center mb-12">
-                    <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4" style={{ color: colors?.text }}>
-                      Contáctanos
+                  <div className="mb-8">
+                    <h1 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                      {getPageTitle('contact')}
                     </h1>
-                    <p className="text-lg" style={{ color: colors?.textMuted }}>
-                      Estamos aquí para ayudarte
+                    <p className="text-gray-500">
+                      We are here to help you
                     </p>
                   </div>
 
@@ -744,98 +794,54 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
           </>
         );
 
-      case 'faq':
+      case 'faq': {
+        const faqList = SEO_TIPS[studio?.businessType || 'waxing'] || SEO_TIPS.waxing;
         return (
           <>
-            <section className="py-16" style={{ backgroundColor: colors?.background }}>
+            <section className="py-10" style={{ backgroundColor: colors?.background }}>
               <div className="container mx-auto px-4">
                 <div className="max-w-3xl mx-auto">
-                  <div className="text-center mb-12">
-                    <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4" style={{ color: colors?.text }}>
-                      Preguntas Frecuentes
+                  <div className="mb-8">
+                    <h1 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                      {getPageTitle('faq')}
                     </h1>
-                    <p className="text-lg" style={{ color: colors?.textMuted }}>
-                      Todo lo que necesitas saber sobre nuestros servicios
+                    <p className="text-gray-500">
+                      Everything you need to know about our services
                     </p>
                   </div>
 
-                  {/* Waxing FAQs */}
-                  <div className="mb-12">
-                    <h2 className="font-heading text-2xl font-bold mb-6" style={{ color: colors?.text }}>
-                      Sobre Waxing
-                    </h2>
-                    <div className="space-y-4">
-                      {SEO_TIPS.waxing.map((faq, idx) => (
-                        <Card key={idx} style={{ borderColor: colors?.border, backgroundColor: colors?.surface }}>
-                          <CardContent className="p-6">
-                            <h3 className="font-semibold mb-2 flex items-center gap-2" style={{ color: colors?.text }}>
-                              <HelpCircle className="w-5 h-5" style={{ color: colors?.accent }} />
-                              {faq.question}
-                            </h3>
-                            <p style={{ color: colors?.textMuted }}>{faq.answer}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Aftercare FAQs */}
-                  <div className="mb-12">
-                    <h2 className="font-heading text-2xl font-bold mb-6" style={{ color: colors?.text }}>
-                      Cuidados Después del Waxing
-                    </h2>
-                    <div className="space-y-4">
-                      {SEO_TIPS.aftercare.map((faq, idx) => (
-                        <Card key={idx} style={{ borderColor: colors?.border, backgroundColor: colors?.surface }}>
-                          <CardContent className="p-6">
-                            <h3 className="font-semibold mb-2 flex items-center gap-2" style={{ color: colors?.text }}>
-                              <HelpCircle className="w-5 h-5" style={{ color: colors?.accent }} />
-                              {faq.question}
-                            </h3>
-                            <p style={{ color: colors?.textMuted }}>{faq.answer}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Local FAQs */}
-                  <div>
-                    <h2 className="font-heading text-2xl font-bold mb-6" style={{ color: colors?.text }}>
-                      Información del Estudio
-                    </h2>
-                    <div className="space-y-4">
-                      {SEO_TIPS.local.map((faq, idx) => (
-                        <Card key={idx} style={{ borderColor: colors?.border, backgroundColor: colors?.surface }}>
-                          <CardContent className="p-6">
-                            <h3 className="font-semibold mb-2 flex items-center gap-2" style={{ color: colors?.text }}>
-                              <HelpCircle className="w-5 h-5" style={{ color: colors?.accent }} />
-                              {faq.question}
-                            </h3>
-                            <p style={{ color: colors?.textMuted }}>{faq.answer}</p>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
+                  <div className="space-y-4">
+                    {faqList.map((faq: any, idx: number) => (
+                      <Card key={idx} style={{ borderColor: colors?.border, backgroundColor: colors?.surface }}>
+                        <CardContent className="p-6">
+                          <h3 className="font-semibold mb-2 flex items-center gap-2" style={{ color: colors?.text }}>
+                            <HelpCircle className="w-5 h-5" style={{ color: colors?.accent }} />
+                            {faq.question}
+                          </h3>
+                          <p style={{ color: colors?.textMuted }}>{faq.answer}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
                 </div>
               </div>
             </section>
           </>
         );
+      }
 
       case 'appointments':
         return (
           <>
-            <section className="py-16" style={{ backgroundColor: colors?.background }}>
+            <section className="py-10" style={{ backgroundColor: colors?.background }}>
               <div className="container mx-auto px-4">
                 <div className="max-w-4xl mx-auto">
-                  <div className="text-center mb-12">
-                    <h1 className="font-heading text-4xl md:text-5xl font-bold mb-4" style={{ color: colors?.text }}>
-                      Reserva tu Cita
+                  <div className="mb-8">
+                    <h1 className="font-heading text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+                      {getPageTitle('appointments')}
                     </h1>
-                    <p className="text-lg" style={{ color: colors?.textMuted }}>
-                      Elige el servicio y horario que mejor te convenga
+                    <p className="text-gray-500">
+                      Choose the service and time that works best for you
                     </p>
                   </div>
 
@@ -849,7 +855,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                       <p className="mb-6" style={{ color: colors?.textMuted }}>
                         Reserva tu cita en segundos. Sin llamadas, sin esperas.
                       </p>
-                      <Link href={getPath('appointments')}>
+                      <Link href={'/book'}>
                         <Button
                           size="lg"
                           className="rounded-full px-8 py-6 text-lg"
@@ -1023,7 +1029,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                   </Link>
                 );
               })}
-              <Link href={getPath('appointments')}>
+              <Link href={'/book'}>
                 <Button
                   className="rounded-full px-6"
                   style={{ backgroundColor: colors?.primary, color: colors?.primaryForeground }}
@@ -1064,7 +1070,7 @@ export default function StudioPublicPage({ params }: { params: Promise<PageParam
                 </Link>
               );
             })}
-            <Link href={getPath('appointments')} onClick={() => setMobileMenuOpen(false)}>
+            <Link href={'/book'} onClick={() => setMobileMenuOpen(false)}>
               <Button
                 className="w-full rounded-full"
                 style={{ backgroundColor: colors?.primary, color: colors?.primaryForeground }}

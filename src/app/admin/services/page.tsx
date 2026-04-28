@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -20,18 +20,53 @@ interface Service {
   isActive: boolean;
 }
 
+const businessTypeLabels: Record<string, string> = {
+  waxing: 'Waxing',
+  barber: 'Barber Shop',
+  nails: 'Nail Salon',
+  hair: 'Hair Salon',
+  tattoo: 'Tattoo Studio',
+  massage: 'Massage Spa',
+  skincare: 'Skin Care',
+  'brow-lash': 'Brow & Lash',
+  tanning: 'Tanning Salon',
+  default: 'Beauty',
+};
+
 export default function AdminServicesPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [businessType, setBusinessType] = useState('waxing');
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('mock_user');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user?.studioId) {
+          const studioData = localStorage.getItem('mock_studio_' + user.studioId);
+          if (studioData) {
+            const studio = JSON.parse(studioData);
+            if (studio.businessType) {
+              setBusinessType(studio.businessType);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error reading studio data:', e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     fetchServices();
-  }, []);
+  }, [businessType]);
 
   const fetchServices = async () => {
+    setIsLoading(true);
     try {
-      const res = await fetch('/api/services');
+      const res = await fetch(`/api/services?businessType=${encodeURIComponent(businessType)}`);
       if (res.ok) {
         const data = await res.json();
         setServices(data);
@@ -49,10 +84,12 @@ export default function AdminServicesPage() {
       s.category.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const label = businessTypeLabels[businessType] || businessTypeLabels.default;
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-pink-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
       </div>
     );
   }
@@ -62,9 +99,9 @@ export default function AdminServicesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Services</h1>
-          <p className="text-gray-500">Manage your waxing services</p>
+          <p className="text-gray-500">Manage your {label.toLowerCase()} services</p>
         </div>
-        <Button asChild className="bg-pink-600 hover:bg-pink-700">
+        <Button asChild className="bg-gray-900 hover:bg-black">
           <Link href="/admin/services/new">
             <Plus className="h-4 w-4 mr-2" />
             Add Service
@@ -92,10 +129,10 @@ export default function AdminServicesPage() {
               <Scissors className="mx-auto h-12 w-12 text-gray-300" />
               <h3 className="mt-4 text-lg font-medium text-gray-900">No services found</h3>
               <p className="mt-2 text-sm text-gray-500">
-                {search ? 'Try adjusting your search' : 'Get started by adding your first service'}
+                {search ? 'Try adjusting your search' : `Get started by adding your first ${label.toLowerCase()} service`}
               </p>
               {!search && (
-                <Button asChild className="mt-4 bg-pink-600 hover:bg-pink-700">
+                <Button asChild className="mt-4 bg-gray-900 hover:bg-black">
                   <Link href="/admin/services/new">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Service
@@ -153,7 +190,6 @@ export default function AdminServicesPage() {
                             }
                           }
                           if (action === 'duplicate') {
-                            // Handle duplicate
                             console.log('Duplicate:', data.id);
                           }
                         }}

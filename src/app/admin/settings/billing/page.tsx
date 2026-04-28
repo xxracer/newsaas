@@ -131,7 +131,7 @@ export default function BillingSettingsPage() {
 
             <Button
               onClick={handleConnectStripe}
-              className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90"
+              className="w-full bg-blue-600 hover:bg-blue-700"
               disabled={isConnecting}
             >
               {isConnecting ? (

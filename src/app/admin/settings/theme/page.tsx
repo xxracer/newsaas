@@ -165,7 +165,7 @@ export default function ThemeSettingsPage() {
         <Button
           onClick={handleSave}
           disabled={isSaving || selectedTheme === theme}
-          className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
+          className="bg-blue-600 hover:bg-blue-700"
         >
           {isSaving ? 'Guardando...' : 'Guardar Diseño'}
         </Button>

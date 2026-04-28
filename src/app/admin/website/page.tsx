@@ -1,50 +1,272 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { 
-  LayoutDashboard, 
-  Settings, 
-  Eye, 
-  EyeOff, 
-  ChevronRight, 
-  Plus, 
-  Trash2, 
-  ExternalLink,
-  Smartphone,
-  Monitor,
-  Palette,
-  Calendar,
-  Sparkles,
-  Star,
-  ChevronUp,
-  ChevronDown,
-  Home,
-  LayoutTemplate,
-  X,
-  Image as ImageIcon
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMockAuth } from '@/components/providers/MockAuthProvider';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription, 
-  DialogFooter 
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+  SheetClose,
+} from '@/components/ui/sheet';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  LayoutDashboard,
+  Scissors,
+  Calendar,
+  Gift,
+  ShoppingBag,
+  Users,
+  MapPin,
+  HelpCircle,
+  Home,
+  Eye,
+  EyeOff,
+  ChevronUp,
+  ChevronDown,
+  Sparkles,
+  ExternalLink,
+  Palette,
+  Plus,
+  LayoutTemplate,
+  Pencil,
+  Image as ImageIcon,
+  Type,
+  AlignLeft,
+  MousePointerClick,
+  Phone,
+  Mail,
+  MapPinned,
+  Instagram,
+  Save,
+  GripVertical,
+  Trash2,
+  Check,
+  Clock,
+  User,
+  CreditCard,
+  ArrowRight,
+  Monitor,
+  Smartphone,
+} from 'lucide-react';
 import Link from 'next/link';
+import { getBusinessType } from '@/lib/business-types';
+
+const iconMap: Record<string, any> = {
+  LayoutDashboard,
+  Scissors,
+  Calendar,
+  Gift,
+  ShoppingBag,
+  Users,
+  MapPin,
+  HelpCircle,
+  Home,
+  Phone,
+  Instagram,
+  ImageIcon,
+};
+
+// ============================================
+// SECTION EDITOR SCHEMA
+// ============================================
+
+type FieldType = 'text' | 'textarea' | 'image' | 'url';
+
+interface SectionField {
+  key: string;
+  label: string;
+  type: FieldType;
+  placeholder?: string;
+}
+
+interface SectionSchema {
+  name: string;
+  icon: string;
+  description: string;
+  fields: SectionField[];
+}
+
+const SECTION_SCHEMA: Record<string, SectionSchema> = {
+  hero: {
+    name: 'Hero Banner',
+    icon: 'LayoutTemplate',
+    description: 'Large top banner with headline, subtitle, and call-to-action.',
+    fields: [
+      { key: 'title', label: 'Headline', type: 'text', placeholder: 'Welcome to our studio' },
+      { key: 'subtitle', label: 'Subheadline', type: 'textarea', placeholder: 'Experience the best beauty services in town.' },
+      { key: 'backgroundImage', label: 'Background Image URL', type: 'image', placeholder: 'https://images.unsplash.com/...' },
+      { key: 'ctaText', label: 'Button Text', type: 'text', placeholder: 'Book Appointment' },
+      { key: 'ctaLink', label: 'Button Link', type: 'url', placeholder: '/book' },
+    ],
+  },
+  servicesGrid: {
+    name: 'Services Grid',
+    icon: 'Scissors',
+    description: 'Display your services in a responsive card grid.',
+    fields: [
+      { key: 'title', label: 'Section Title', type: 'text', placeholder: 'Our Services' },
+      { key: 'subtitle', label: 'Section Subtitle', type: 'text', placeholder: 'Choose from our curated menu' },
+    ],
+  },
+  aboutPreview: {
+    name: 'About Preview',
+    icon: 'Users',
+    description: 'Short story about your studio with an image.',
+    fields: [
+      { key: 'title', label: 'Title', type: 'text', placeholder: 'About Us' },
+      { key: 'description', label: 'Description', type: 'textarea', placeholder: 'We have been serving our community since 2020...' },
+      { key: 'image', label: 'Image URL', type: 'image', placeholder: 'https://images.unsplash.com/...' },
+    ],
+  },
+  testimonials: {
+    name: 'Testimonials',
+    icon: 'Sparkles',
+    description: 'Client reviews and star ratings.',
+    fields: [
+      { key: 'title', label: 'Section Title', type: 'text', placeholder: 'What Our Clients Say' },
+    ],
+  },
+  teamPreview: {
+    name: 'Team Preview',
+    icon: 'Users',
+    description: 'Showcase your staff members.',
+    fields: [
+      { key: 'title', label: 'Section Title', type: 'text', placeholder: 'Meet the Team' },
+    ],
+  },
+  gallery: {
+    name: 'Gallery',
+    icon: 'ImageIcon',
+    description: 'Photo gallery of your work or studio.',
+    fields: [
+      { key: 'title', label: 'Section Title', type: 'text', placeholder: 'Our Work' },
+    ],
+  },
+  promotions: {
+    name: 'Promotions',
+    icon: 'Gift',
+    description: 'Highlight special offers and discounts.',
+    fields: [
+      { key: 'title', label: 'Section Title', type: 'text', placeholder: 'Special Offers' },
+    ],
+  },
+  giftCards: {
+    name: 'Gift Cards',
+    icon: 'Gift',
+    description: 'Promote your gift card options.',
+    fields: [
+      { key: 'title', label: 'Section Title', type: 'text', placeholder: 'Gift Cards' },
+    ],
+  },
+  instagramFeed: {
+    name: 'Instagram Feed',
+    icon: 'Instagram',
+    description: 'Embed your Instagram handle or feed preview.',
+    fields: [
+      { key: 'title', label: 'Section Title', type: 'text', placeholder: 'Follow Us on Instagram' },
+      { key: 'handle', label: 'Instagram Handle', type: 'text', placeholder: '@yourstudio' },
+    ],
+  },
+  ctaBanner: {
+    name: 'CTA Banner',
+    icon: 'MousePointerClick',
+    description: 'Bottom banner with a strong call-to-action.',
+    fields: [
+      { key: 'title', label: 'Headline', type: 'text', placeholder: 'Ready to look your best?' },
+      { key: 'subtitle', label: 'Subtitle', type: 'textarea', placeholder: 'Book your appointment today and enjoy 10% off your first visit.' },
+      { key: 'ctaText', label: 'Button Text', type: 'text', placeholder: 'Book Now' },
+      { key: 'ctaLink', label: 'Button Link', type: 'url', placeholder: '/book' },
+    ],
+  },
+  contactInfo: {
+    name: 'Contact Info',
+    icon: 'MapPinned',
+    description: 'Address, phone, email, and business hours.',
+    fields: [
+      { key: 'title', label: 'Section Title', type: 'text', placeholder: 'Visit Us' },
+      { key: 'phone', label: 'Phone', type: 'text', placeholder: '(555) 123-4567' },
+      { key: 'email', label: 'Email', type: 'text', placeholder: 'hello@studio.com' },
+      { key: 'address', label: 'Address', type: 'text', placeholder: '123 Main Street, City, ST 12345' },
+    ],
+  },
+};
+
+// Default content for each section when first added
+const DEFAULT_SECTION_CONTENT: Record<string, Record<string, string>> = {
+  hero: {
+    title: 'Welcome to Our Studio',
+    subtitle: 'Experience luxury beauty services tailored just for you.',
+    backgroundImage: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1600&h=900&fit=crop',
+    ctaText: 'Book Now',
+    ctaLink: '/book',
+  },
+  servicesGrid: {
+    title: 'Our Services',
+    subtitle: 'Choose from our curated menu of premium treatments.',
+  },
+  aboutPreview: {
+    title: 'About Us',
+    description: 'Founded with a passion for beauty and client care, our studio offers a welcoming space where you can relax and transform.',
+    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&h=600&fit=crop',
+  },
+  testimonials: {
+    title: 'What Our Clients Say',
+  },
+  teamPreview: {
+    title: 'Meet the Team',
+  },
+  gallery: {
+    title: 'Our Work',
+  },
+  promotions: {
+    title: 'Special Offers',
+  },
+  giftCards: {
+    title: 'Gift Cards',
+  },
+  instagramFeed: {
+    title: 'Follow Us on Instagram',
+    handle: '@ourstudio',
+  },
+  ctaBanner: {
+    title: 'Ready to look your best?',
+    subtitle: 'Book your appointment today and enjoy 10% off your first visit.',
+    ctaText: 'Book Now',
+    ctaLink: '/book',
+  },
+  contactInfo: {
+    title: 'Visit Us',
+    phone: '(555) 123-4567',
+    email: 'hello@studio.com',
+    address: '123 Main Street, City, ST 12345',
+  },
+};
+
+// ============================================
+// TYPES
+// ============================================
 
 interface PageSection {
   id: string;
   name: string;
   enabled: boolean;
-  type: string;
+  content?: Record<string, string>;
 }
 
 interface StudioPage {
@@ -53,643 +275,864 @@ interface StudioPage {
   slug: string;
   icon: string;
   enabled: boolean;
-  sectionCount: number;
+  order: number;
   sections: PageSection[];
 }
 
-const DEFAULT_PAGES: StudioPage[] = [
-  {
-    id: 'home',
-    name: 'Home Page',
-    slug: 'home',
-    icon: 'home',
-    enabled: true,
-    sectionCount: 11,
-    sections: [
-      { id: 'hero', name: 'Hero', enabled: true, type: 'hero' },
-      { id: 'servicesGrid', name: 'ServicesGrid', enabled: true, type: 'grid' },
-      { id: 'aboutPreview', name: 'AboutPreview', enabled: true, type: 'text' },
-      { id: 'testimonials', name: 'Testimonials', enabled: true, type: 'list' },
-      { id: 'teamPreview', name: 'TeamPreview', enabled: true, type: 'list' },
-      { id: 'gallery', name: 'Gallery', enabled: true, type: 'media' },
-      { id: 'promotions', name: 'Promotions', enabled: true, type: 'banner' },
-      { id: 'giftCards', name: 'GiftCards', enabled: true, type: 'card' },
-      { id: 'instagramFeed', name: 'InstagramFeed', enabled: true, type: 'social' },
-      { id: 'ctaBanner', name: 'CtaBanner', enabled: true, type: 'banner' },
-      { id: 'contactInfo', name: 'ContactInfo', enabled: true, type: 'info' },
-    ]
-  },
-  {
-    id: 'services',
-    name: 'Services',
-    slug: 'services',
-    icon: 'scissors',
-    enabled: true,
-    sectionCount: 4,
-    sections: [
-      { id: 'servicesHero', name: 'Header', enabled: true, type: 'hero' },
-      { id: 'servicesList', name: 'Full Services', enabled: true, type: 'list' },
-      { id: 'pricing', name: 'Pricing Table', enabled: true, type: 'table' },
-      { id: 'bookCta', name: 'Booking CTA', enabled: true, type: 'banner' },
-    ]
-  },
-  {
-    id: 'appointments',
-    name: 'Appointments',
-    slug: 'appointments',
-    icon: 'calendar',
-    enabled: true,
-    sectionCount: 4,
-    sections: [
-      { id: 'bookingStep1', name: 'Service Selection', enabled: true, type: 'form' },
-      { id: 'bookingStep2', name: 'Time Selection', enabled: true, type: 'form' },
-      { id: 'bookingStep3', name: 'Contact Details', enabled: true, type: 'form' },
-      { id: 'bookingConfirm', name: 'Confirmation', enabled: true, type: 'info' },
-    ]
-  },
-  {
-    id: 'about',
-    name: 'About Us',
-    slug: 'about',
-    icon: 'users',
-    enabled: true,
-    sectionCount: 4,
-    sections: [
-      { id: 'story', name: 'Our Story', enabled: true, type: 'text' },
-      { id: 'mission', name: 'Mission & Vision', enabled: true, type: 'text' },
-      { id: 'team', name: 'Meet the Team', enabled: true, type: 'list' },
-      { id: 'culture', name: 'Our Culture', enabled: true, type: 'media' },
-    ]
-  },
-  {
-    id: 'contact',
-    name: 'Contact',
-    slug: 'contact',
-    icon: 'map-pin',
-    enabled: true,
-    sectionCount: 4,
-    sections: [
-      { id: 'contactHero', name: 'Header', enabled: true, type: 'hero' },
-      { id: 'contactForm', name: 'Contact Form', enabled: true, type: 'form' },
-      { id: 'map', name: 'Location Map', enabled: true, type: 'map' },
-      { id: 'faqSmall', name: 'FAQ Summary', enabled: true, type: 'list' },
-    ]
-  }
-];
+function getDefaultPages(businessTypeId: string = 'waxing'): StudioPage[] {
+  const bt = getBusinessType(businessTypeId);
+  const btPages = bt?.defaultPages || ['home', 'services', 'appointments', 'about', 'contact'];
 
-const iconMap: Record<string, any> = {
-  home: Home,
-  scissors: LayoutDashboard,
-  calendar: Calendar,
-  users: LayoutDashboard,
-  'map-pin': LayoutDashboard,
-};
+  const pageDefs: Record<string, { name: string; slug: string; icon: string; sections: string[] }> = {
+    home: {
+      name: 'Home Page', slug: 'home', icon: 'Home',
+      sections: ['hero', 'servicesGrid', 'aboutPreview', 'testimonials', 'teamPreview', 'gallery', 'promotions', 'giftCards', 'instagramFeed', 'ctaBanner', 'contactInfo'],
+    },
+    services: {
+      name: 'Services', slug: 'services', icon: 'Scissors',
+      sections: ['servicesGrid', 'ctaBanner'],
+    },
+    appointments: {
+      name: 'Appointments', slug: 'appointments', icon: 'Calendar',
+      sections: ['ctaBanner'],
+    },
+    about: {
+      name: 'About Us', slug: 'about', icon: 'Users',
+      sections: ['aboutPreview', 'teamPreview', 'ctaBanner'],
+    },
+    contact: {
+      name: 'Contact', slug: 'contact', icon: 'MapPin',
+      sections: ['contactInfo', 'ctaBanner'],
+    },
+    'gift-cards': {
+      name: 'Gift Cards', slug: 'gift-cards', icon: 'Gift',
+      sections: ['promotions', 'ctaBanner'],
+    },
+    products: {
+      name: 'Products', slug: 'products', icon: 'ShoppingBag',
+      sections: ['ctaBanner'],
+    },
+    gallery: {
+      name: 'Gallery', slug: 'gallery', icon: 'ImageIcon',
+      sections: ['gallery', 'ctaBanner'],
+    },
+    portfolio: {
+      name: 'Portfolio', slug: 'portfolio', icon: 'ImageIcon',
+      sections: ['gallery', 'ctaBanner'],
+    },
+    faq: {
+      name: 'FAQ', slug: 'faq', icon: 'HelpCircle',
+      sections: ['ctaBanner'],
+    },
+    packages: {
+      name: 'Packages', slug: 'packages', icon: 'Gift',
+      sections: ['promotions', 'ctaBanner'],
+    },
+  };
+
+  const order = ['home', 'services', 'appointments', 'about', 'contact', 'gallery', 'portfolio', 'packages', 'gift-cards', 'products', 'faq'];
+
+  return btPages
+    .map((pid, idx) => {
+      const def = pageDefs[pid];
+      if (!def) return null;
+      const sections: PageSection[] = def.sections.map((sid) => {
+        const schema = SECTION_SCHEMA[sid];
+        return {
+          id: sid,
+          name: schema?.name || sid,
+          enabled: true,
+          content: DEFAULT_SECTION_CONTENT[sid] ? { ...DEFAULT_SECTION_CONTENT[sid] } : {},
+        };
+      });
+      return {
+        id: def.slug,
+        name: def.name,
+        slug: def.slug,
+        icon: def.icon,
+        enabled: idx < 5,
+        order: order.indexOf(pid) + 1,
+        sections,
+      };
+    })
+    .filter(Boolean) as StudioPage[];
+}
+
+// ============================================
+// MAIN COMPONENT
+// ============================================
 
 export default function WebsitePagesPage() {
-  const [pages, setPages] = useState<StudioPage[]>(DEFAULT_PAGES);
+  const router = useRouter();
+  const { user } = useMockAuth();
+  const [businessType, setBusinessType] = useState<string>('waxing');
+  const [pages, setPages] = useState<StudioPage[]>(() => getDefaultPages('waxing'));
   const [selectedPageId, setSelectedPageId] = useState<string>('home');
   const [activeTab, setActiveTab] = useState('pages');
-  const [isInitialLoadDone, setIsInitialLoadDone] = useState(false);
+
+  // Section editor state
+  const [editingSection, setEditingSection] = useState<PageSection | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editDraft, setEditDraft] = useState<Record<string, string>>({});
+
+  // Add page dialog
   const [showAddPageDialog, setShowAddPageDialog] = useState(false);
   const [newPageName, setNewPageName] = useState('');
   const [newPageSlug, setNewPageSlug] = useState('');
-  const [editingSection, setEditingSection] = useState<{ pageId: string, section: PageSection } | null>(null);
-  const [colors, setColors] = useState({
-    primary: '#f43f5e',
-    primaryForeground: '#ffffff',
-    background: '#ffffff',
-    surface: '#f9fafb',
-    text: '#111827'
-  });
+
+  // Booking style
+  const [selectedBookingStyle, setSelectedBookingStyle] = useState('modern');
 
   // Load from localStorage
   useEffect(() => {
-    const savedData = localStorage.getItem('mock_studio_pages');
-    const savedColors = localStorage.getItem('mock_studio_colors');
-    if (savedData) {
-      try {
-        setPages(JSON.parse(savedData));
-      } catch (e) {
-        console.error('Error loading pages', e);
+    if (user?.studioId) {
+      const stored = localStorage.getItem('mock_studio_' + user.studioId);
+      if (stored) {
+        try {
+          const data = JSON.parse(stored);
+          const bt = data.businessType || 'waxing';
+          setBusinessType(bt);
+          if (data.website?.pages) {
+            setPages(data.website.pages);
+          } else {
+            setPages(getDefaultPages(bt));
+          }
+          if (data.website?.bookingStyle) {
+            setSelectedBookingStyle(data.website.bookingStyle);
+          }
+        } catch { /* ignore */ }
       }
     }
-    if (savedColors) {
-      try {
-        setColors(JSON.parse(savedColors));
-      } catch (e) {
-        console.error('Error loading colors', e);
-      }
-    }
-    setIsInitialLoadDone(true);
-  }, []);
+  }, [user?.studioId]);
 
   // Save to localStorage
   useEffect(() => {
-    if (isInitialLoadDone) {
-      localStorage.setItem('mock_studio_pages', JSON.stringify(pages));
-      localStorage.setItem('mock_studio_colors', JSON.stringify(colors));
-      
-      // Update the mock studio object too
-      const studio = JSON.parse(localStorage.getItem('mock_studio_demo') || '{}');
-      studio.website = { pages, colors };
-      localStorage.setItem('mock_studio_demo', JSON.stringify(studio));
+    if (user?.studioId) {
+      const stored = localStorage.getItem('mock_studio_' + user.studioId);
+      const data = stored ? JSON.parse(stored) : {};
+      data.website = { ...(data.website || {}), pages, bookingStyle: selectedBookingStyle };
+      localStorage.setItem('mock_studio_' + user.studioId, JSON.stringify(data));
     }
-  }, [pages, colors, isInitialLoadDone]);
+  }, [pages, selectedBookingStyle, user?.studioId]);
 
-  const selectedPage = pages.find(p => p.id === selectedPageId) || pages[0];
+  const selectedPage = pages.find((p) => p.id === selectedPageId) || pages[0];
 
   const handleTogglePage = (pageId: string) => {
-    setPages(pages.map(p => p.id === pageId ? { ...p, enabled: !p.enabled } : p));
+    setPages((prev) => prev.map((p) => (p.id === pageId ? { ...p, enabled: !p.enabled } : p)));
   };
 
   const handleToggleSection = (pageId: string, sectionId: string) => {
-    setPages(pages.map(p => {
-      if (p.id !== pageId) return p;
-      return {
-        ...p,
-        sections: p.sections.map(s => s.id === sectionId ? { ...s, enabled: !s.enabled } : s)
-      };
-    }));
+    setPages((prev) =>
+      prev.map((p) => {
+        if (p.id !== pageId) return p;
+        return {
+          ...p,
+          sections: p.sections.map((s) =>
+            s.id === sectionId ? { ...s, enabled: !s.enabled } : s
+          ),
+        };
+      })
+    );
   };
 
-  const handleMoveUp = (index: number) => {
-    if (index === 0) return;
-    const newPages = [...pages];
-    [newPages[index - 1], newPages[index]] = [newPages[index], newPages[index - 1]];
-    setPages(newPages);
+  const handleMoveSectionUp = (pageId: string, sectionIndex: number) => {
+    if (sectionIndex === 0) return;
+    setPages((prev) =>
+      prev.map((p) => {
+        if (p.id !== pageId) return p;
+        const secs = [...p.sections];
+        [secs[sectionIndex - 1], secs[sectionIndex]] = [secs[sectionIndex], secs[sectionIndex - 1]];
+        return { ...p, sections: secs };
+      })
+    );
   };
 
-  const handleMoveDown = (index: number) => {
-    if (index === pages.length - 1) return;
-    const newPages = [...pages];
-    [newPages[index], newPages[index + 1]] = [newPages[index + 1], newPages[index]];
-    setPages(newPages);
-  };
-
-  const handleMoveSectionUp = (pageId: string, index: number) => {
-    if (index === 0) return;
-    setPages(pages.map(p => {
-      if (p.id !== pageId) return p;
-      const updatedSections = [...p.sections];
-      [updatedSections[index - 1], updatedSections[index]] = [updatedSections[index], updatedSections[index - 1]];
-      return { ...p, sections: updatedSections };
-    }));
-  };
-
-  const handleMoveSectionDown = (pageId: string, index: number) => {
-    setPages(pages.map(p => {
-      if (p.id !== pageId) return p;
-      if (index === p.sections.length - 1) return p;
-      const updatedSections = [...p.sections];
-      [updatedSections[index], updatedSections[index + 1]] = [updatedSections[index + 1], updatedSections[index]];
-      return { ...p, sections: updatedSections };
-    }));
-  };
-
-  const handleUpdateSection = (pageId: string, sectionId: string, updates: Partial<PageSection>) => {
-    setPages(pages.map(p => {
-      if (p.id !== pageId) return p;
-      return {
-        ...p,
-        sections: p.sections.map(s => s.id === sectionId ? { ...s, ...updates } : s)
-      };
-    }));
-    setEditingSection(null);
+  const handleMoveSectionDown = (pageId: string, sectionIndex: number) => {
+    setPages((prev) =>
+      prev.map((p) => {
+        if (p.id !== pageId) return p;
+        if (sectionIndex >= p.sections.length - 1) return p;
+        const secs = [...p.sections];
+        [secs[sectionIndex], secs[sectionIndex + 1]] = [secs[sectionIndex + 1], secs[sectionIndex]];
+        return { ...p, sections: secs };
+      })
+    );
   };
 
   const handleAddPage = () => {
-    if (!newPageName) return;
-    const newPageId = newPageSlug || newPageName.toLowerCase().replace(/\s+/g, '-');
+    if (!newPageName || !newPageSlug) return;
     const newPage: StudioPage = {
-      id: newPageId,
+      id: `page-${Date.now()}`,
       name: newPageName,
-      slug: newPageId,
-      icon: 'scissors',
+      slug: newPageSlug.toLowerCase().replace(/\s+/g, '-'),
+      icon: 'LayoutDashboard',
       enabled: true,
-      sectionCount: 0,
-      sections: []
+      order: pages.length + 1,
+      sections: [
+        { id: 'hero', name: 'Hero Banner', enabled: true, content: { ...DEFAULT_SECTION_CONTENT.hero } },
+        { id: 'ctaBanner', name: 'CTA Banner', enabled: true, content: { ...DEFAULT_SECTION_CONTENT.ctaBanner } },
+      ],
     };
-    setPages([...pages, newPage]);
-    setShowAddPageDialog(false);
+    setPages((prev) => [...prev, newPage]);
     setNewPageName('');
     setNewPageSlug('');
+    setShowAddPageDialog(false);
   };
 
-  return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="font-heading text-2xl font-bold mb-1">Diseño del Sitio Web</h1>
-          <p className="text-gray-500 text-sm">Personaliza las páginas, secciones y estilos de tu sitio</p>
+  const handleMovePageUp = (index: number) => {
+    if (index === 0) return;
+    setPages((prev) => {
+      const updated = [...prev];
+      [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
+      updated.forEach((p, i) => (p.order = i + 1));
+      return updated;
+    });
+  };
+
+  const handleMovePageDown = (index: number) => {
+    setPages((prev) => {
+      if (index >= prev.length - 1) return prev;
+      const updated = [...prev];
+      [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+      updated.forEach((p, i) => (p.order = i + 1));
+      return updated;
+    });
+  };
+
+  // Section editor handlers
+  const openSectionEditor = (section: PageSection) => {
+    setEditingSection(section);
+    setEditDraft({ ...(section.content || {}) });
+    setEditorOpen(true);
+  };
+
+  const saveSectionContent = () => {
+    if (!editingSection || !selectedPage) return;
+    setPages((prev) =>
+      prev.map((p) => {
+        if (p.id !== selectedPage.id) return p;
+        return {
+          ...p,
+          sections: p.sections.map((s) =>
+            s.id === editingSection.id ? { ...s, content: { ...editDraft } } : s
+          ),
+        };
+      })
+    );
+    setEditorOpen(false);
+    setEditingSection(null);
+  };
+
+  const handleImageUpload = (fieldKey: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setEditDraft((prev) => ({ ...prev, [fieldKey]: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const getFieldIcon = (type: FieldType) => {
+    switch (type) {
+      case 'text': return <Type className="w-4 h-4" />;
+      case 'textarea': return <AlignLeft className="w-4 h-4" />;
+      case 'image': return <ImageIcon className="w-4 h-4" />;
+      case 'url': return <ExternalLink className="w-4 h-4" />;
+    }
+  };
+
+  // Mini preview component for each section type
+  const SectionMiniPreview = ({ section }: { section: PageSection }) => {
+    const schema = SECTION_SCHEMA[section.id];
+    const content = section.content || {};
+
+    switch (section.id) {
+      case 'hero':
+        return (
+          <div className="relative h-28 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-100">
+            {content.backgroundImage ? (
+              <img src={content.backgroundImage} alt="" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+            ) : null}
+            <div className="relative z-10 text-center px-4">
+              <p className="text-sm font-bold text-gray-900">{content.title || 'Hero Title'}</p>
+              {content.subtitle && <p className="text-[11px] text-gray-600 mt-0.5 max-w-[200px] mx-auto truncate">{content.subtitle}</p>}
+            </div>
+          </div>
+        );
+      case 'servicesGrid':
+        return (
+          <div className="grid grid-cols-4 gap-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-14 rounded-lg bg-white border border-gray-100 flex items-center justify-center">
+                <Scissors className="w-4 h-4 text-gray-300" />
+              </div>
+            ))}
+          </div>
+        );
+      case 'aboutPreview':
+        return (
+          <div className="flex gap-3 items-center">
+            <div className="w-14 h-14 rounded-lg bg-gray-100 shrink-0 overflow-hidden border border-gray-100">
+              {content.image ? <img src={content.image} alt="" className="w-full h-full object-cover" /> : null}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-900 truncate">{content.title || 'About Us'}</p>
+              <p className="text-[11px] text-gray-500 truncate">{content.description || ''}</p>
+            </div>
+          </div>
+        );
+      case 'ctaBanner':
+        return (
+          <div className="h-16 rounded-lg bg-gray-900 flex flex-col items-center justify-center text-white">
+            <p className="text-xs font-bold">{content.title || 'CTA Banner'}</p>
+            <span className="text-[9px] bg-white text-gray-900 px-2 py-0.5 rounded mt-0.5">{content.ctaText || 'Book Now'}</span>
+          </div>
+        );
+      case 'contactInfo':
+        return (
+          <div className="flex gap-4 text-[11px] text-gray-600">
+            {content.phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{content.phone}</span>}
+            {content.email && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{content.email}</span>}
+          </div>
+        );
+      case 'testimonials':
+        return (
+          <div className="flex gap-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex-1 h-14 rounded-lg bg-white border border-gray-100 p-2">
+                <div className="flex gap-0.5 mb-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <Sparkles key={s} className="w-2 h-2 text-amber-400" />
+                  ))}
+                </div>
+                <div className="h-1.5 bg-gray-100 rounded w-full" />
+                <div className="h-1.5 bg-gray-100 rounded w-2/3 mt-1" />
+              </div>
+            ))}
+          </div>
+        );
+      case 'teamPreview':
+        return (
+          <div className="flex gap-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex-1 flex flex-col items-center">
+                <div className="w-10 h-10 rounded-full bg-gray-100 border border-gray-100" />
+                <div className="h-1.5 bg-gray-100 rounded w-8 mt-1.5" />
+              </div>
+            ))}
+          </div>
+        );
+      case 'gallery':
+        return (
+          <div className="grid grid-cols-4 gap-1.5">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="aspect-square rounded-lg bg-gray-100 border border-gray-100" />
+            ))}
+          </div>
+        );
+      case 'promotions':
+        return (
+          <div className="flex gap-2">
+            {[1, 2].map((i) => (
+              <div key={i} className="flex-1 h-16 rounded-lg bg-white border border-gray-100 p-2">
+                <div className="h-2 bg-gray-100 rounded w-1/2 mb-1" />
+                <div className="h-1.5 bg-gray-100 rounded w-full" />
+                <div className="h-1.5 bg-gray-100 rounded w-3/4 mt-0.5" />
+              </div>
+            ))}
+          </div>
+        );
+      case 'giftCards':
+        return (
+          <div className="flex items-center justify-center gap-2">
+            <div className="w-20 h-12 rounded-lg bg-gray-900 border border-gray-800" />
+            <div className="w-20 h-12 rounded-lg bg-white border border-gray-200" />
+          </div>
+        );
+      case 'instagramFeed':
+        return (
+          <div className="flex items-center justify-center gap-1">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="w-10 h-10 rounded bg-gray-100 border border-gray-100" />
+            ))}
+          </div>
+        );
+      default:
+        return (
+          <div className="flex items-center gap-2 text-[11px] text-gray-400">
+            <LayoutTemplate className="w-4 h-4 text-gray-300" />
+            {schema?.name || 'Section'} preview
+          </div>
+        );
+    }
+  };
+
+  // Booking style options
+  const bookingStyles = [
+    {
+      id: 'modern',
+      name: 'Modern Minimal',
+      description: 'Clean white cards with subtle shadows',
+      preview: (
+        <div className="w-full h-full bg-[#f8fafc] p-2 flex flex-col gap-1.5">
+          <div className="flex gap-1 justify-center">
+            {['Services', 'Date', 'Info', 'Confirm'].map((s, i) => (
+              <div key={s} className={`text-[6px] px-1.5 py-0.5 rounded-full ${i === 0 ? 'bg-blue-600 text-white' : 'bg-white text-gray-400 border border-gray-100'}`}>{s}</div>
+            ))}
+          </div>
+          <div className="bg-white rounded-lg p-2 shadow-sm">
+            <div className="h-1.5 bg-gray-100 rounded w-1/2 mb-1" />
+            <div className="grid grid-cols-2 gap-1">
+              <div className="h-8 rounded bg-gray-50 border border-gray-100" />
+              <div className="h-8 rounded bg-gray-50 border border-gray-100" />
+            </div>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <Button 
-            variant="ghost" 
-            className="text-gray-400 hover:text-rose-500"
-            onClick={() => {
-              if (confirm('¿Estás seguro de que quieres restablecer todo? Se borrarán todos los cambios locales.')) {
-                localStorage.clear();
-                window.location.reload();
-              }
-            }}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Restablecer
-          </Button>
-          <Link href={`/studio/demo/home`} target="_blank">
-            <Button className="gap-2 rounded-full bg-rose-500 hover:bg-rose-600">
-              <ExternalLink className="w-4 h-4" />
-              Ver Sitio Público
+      ),
+    },
+    {
+      id: 'classic',
+      name: 'Classic Dark',
+      description: 'Elegant dark header with white content',
+      preview: (
+        <div className="w-full h-full bg-gray-900 p-2 flex flex-col gap-1.5">
+          <div className="text-center">
+            <div className="h-1.5 bg-white/20 rounded w-1/2 mx-auto mb-0.5" />
+          </div>
+          <div className="bg-white rounded-lg p-2">
+            <div className="h-1.5 bg-gray-100 rounded w-1/2 mb-1" />
+            <div className="grid grid-cols-2 gap-1">
+              <div className="h-8 rounded bg-gray-50 border border-gray-100" />
+              <div className="h-8 rounded bg-gray-50 border border-gray-100" />
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'clean',
+      name: 'Clean White',
+      description: 'Pure white with light blue accents',
+      preview: (
+        <div className="w-full h-full bg-white p-2 flex flex-col gap-1.5">
+          <div className="flex gap-1 justify-center">
+            {['Services', 'Date', 'Info', 'Confirm'].map((s, i) => (
+              <div key={s} className={`text-[6px] px-1.5 py-0.5 rounded-full ${i === 0 ? 'bg-sky-100 text-sky-700' : 'text-gray-300'}`}>{s}</div>
+            ))}
+          </div>
+          <div className="bg-white rounded-lg p-2 border border-gray-100">
+            <div className="h-1.5 bg-gray-100 rounded w-1/2 mb-1" />
+            <div className="grid grid-cols-2 gap-1">
+              <div className="h-8 rounded bg-gray-50" />
+              <div className="h-8 rounded bg-gray-50" />
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      id: 'luxury',
+      name: 'Luxury Gold',
+      description: 'Warm cream with gold accents',
+      preview: (
+        <div className="w-full h-full bg-[#faf9f6] p-2 flex flex-col gap-1.5">
+          <div className="text-center">
+            <div className="h-1.5 bg-amber-200/50 rounded w-1/2 mx-auto mb-0.5" />
+          </div>
+          <div className="bg-white rounded-lg p-2 shadow-sm border border-amber-50">
+            <div className="h-1.5 bg-amber-100 rounded w-1/2 mb-1" />
+            <div className="grid grid-cols-2 gap-1">
+              <div className="h-8 rounded bg-gray-50" />
+              <div className="h-8 rounded bg-gray-50" />
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="border-b border-gray-100 bg-white sticky top-0 z-10">
+        <div className="px-6 lg:px-8 py-5 max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 tracking-tight">Website Builder</h1>
+            <p className="text-gray-400 text-sm mt-0.5">Design your pages, booking flow, and appearance.</p>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="outline" className="gap-2 rounded-lg border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 text-sm h-9">
+              <Sparkles className="w-4 h-4" />
+              SEO Tips
             </Button>
-          </Link>
+            <Link href={`/studio/demo/home`} target="_blank">
+              <Button className="gap-2 rounded-lg bg-gray-900 hover:bg-black text-white text-sm h-9">
+                <ExternalLink className="w-4 h-4" />
+                Preview Site
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="w-full bg-gray-100 p-1 rounded-lg grid grid-cols-4">
-          <TabsTrigger value="pages" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
-            <LayoutDashboard className="w-4 h-4" />
-            Páginas
-          </TabsTrigger>
-          <TabsTrigger value="home" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
-            <Home className="w-4 h-4" />
-            Home Page
-          </TabsTrigger>
-          <TabsTrigger value="appointments" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
-            <Calendar className="w-4 h-4" />
-            Citas
-          </TabsTrigger>
-          <TabsTrigger value="appearance" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm gap-2">
-            <Palette className="w-4 h-4" />
-            Apariencia
-          </TabsTrigger>
-        </TabsList>
+      <div className="px-6 lg:px-8 py-6 max-w-7xl mx-auto">
+        <div className="flex items-center gap-1 p-1 bg-gray-50 rounded-xl w-fit mb-6 border border-gray-100">
+          {[
+            { id: 'pages', label: 'Pages', icon: LayoutDashboard },
+            { id: 'appointments', label: 'Booking Style', icon: Calendar },
+            { id: 'appearance', label: 'Appearance', icon: Palette },
+          ].map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  isActive
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
 
-        {/* Pages Tab (Image 1/2) */}
-        <TabsContent value="pages" className="mt-6">
+        {/* PAGES TAB */}
+        {activeTab === 'pages' && (
           <div className="grid lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-7">
-              <h2 className="font-heading text-lg font-semibold mb-4">Páginas del Sitio</h2>
-              <div className="space-y-3">
+            {/* Left Column - Pages List */}
+            <div className="lg:col-span-3">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-xs font-bold text-gray-900 uppercase tracking-wider">Pages</h2>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 gap-1 rounded-lg border-gray-200 text-gray-600 hover:bg-gray-50 text-xs"
+                  onClick={() => setShowAddPageDialog(true)}
+                >
+                  <Plus className="w-3 h-3" />
+                  Add
+                </Button>
+              </div>
+              <div className="space-y-1">
                 {pages.map((page, index) => {
                   const Icon = iconMap[page.icon] || LayoutDashboard;
                   const isSelected = selectedPageId === page.id;
                   return (
-                    <Card
+                    <button
                       key={page.id}
-                      className={`cursor-pointer transition-all border group ${
-                        isSelected ? 'border-rose-300 ring-1 ring-rose-300' : 'border-gray-200 hover:border-gray-300'
-                      }`}
                       onClick={() => setSelectedPageId(page.id)}
+                      className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all text-sm ${
+                        isSelected
+                          ? 'bg-gray-900 text-white border-gray-900 shadow-sm'
+                          : 'bg-white text-gray-700 border-gray-100 hover:border-gray-200 hover:bg-gray-50/50'
+                      }`}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-rose-50 flex items-center justify-center">
-                              <Icon className="w-5 h-5 text-rose-400" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900">{page.name}</h3>
-                              <p className="text-sm text-gray-500">{page.sections.length} secciones</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-col -space-y-1">
-                              <button onClick={(e) => { e.stopPropagation(); handleMoveUp(index); }} className="p-0.5 text-gray-400 hover:text-gray-600"><ChevronUp className="w-4 h-4" /></button>
-                              <button onClick={(e) => { e.stopPropagation(); handleMoveDown(index); }} className="p-0.5 text-gray-400 hover:text-gray-600"><ChevronDown className="w-4 h-4" /></button>
-                            </div>
-                            {page.enabled ? (
-                              <Badge variant="secondary" className="bg-emerald-100 text-emerald-600 border-0 font-medium">Visible</Badge>
-                            ) : (
-                              <Badge variant="secondary" className="bg-gray-100 text-gray-500 border-0 font-medium">Oculta</Badge>
-                            )}
-                            <div onClick={(e) => e.stopPropagation()}>
-                              <Switch checked={page.enabled} onCheckedChange={() => handleTogglePage(page.id)} className="data-[state=checked]:bg-rose-500" />
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                      <Icon className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white' : 'text-gray-400'}`} />
+                      <span className="font-medium truncate flex-1">{page.name}</span>
+                      {page.enabled ? (
+                        <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-blue-400' : 'bg-emerald-400'}`} />
+                      ) : (
+                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                      )}
+                    </button>
                   );
                 })}
               </div>
             </div>
-            <div className="lg:col-span-5">
-              <Card className="border border-gray-200 shadow-sm sticky top-6">
-                <CardHeader>
-                  <CardTitle className="text-xl font-semibold">Secciones de {selectedPage.name}</CardTitle>
-                  <CardDescription>Activa o desactiva las secciones de esta página.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {selectedPage.sections.map((section) => (
-                      <div key={section.id} className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50">
-                        <div className="flex items-center gap-3">
-                          <Eye className="w-4 h-4 text-rose-300" />
-                          <span className="text-sm font-medium">{section.name}</span>
+
+            {/* Center - Sections Canvas */}
+            <div className="lg:col-span-9">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">{selectedPage.name}</h2>
+                  <p className="text-sm text-gray-400">
+                    {selectedPage.sections.filter((s) => s.enabled).length} of {selectedPage.sections.length} sections visible
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Link href={`/studio/demo/${selectedPage.id === 'home' ? '' : selectedPage.id}`} target="_blank">
+                    <Button variant="outline" className="gap-2 rounded-lg border-gray-200 text-gray-600 hover:bg-gray-50 text-sm h-8">
+                      <Eye className="w-4 h-4" />
+                      Preview
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              {/* Sections as Wix-like blocks */}
+              <div className="space-y-2.5">
+                {selectedPage.sections.map((section, idx) => {
+                  const schema = SECTION_SCHEMA[section.id];
+                  const isEnabled = section.enabled !== false;
+                  return (
+                    <div
+                      key={section.id}
+                      className={`group bg-white border rounded-xl overflow-hidden transition-all ${
+                        isEnabled ? 'border-gray-200' : 'border-gray-100 opacity-50'
+                      }`}
+                    >
+                      {/* Section Bar */}
+                      <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-50">
+                        <div className="text-gray-300 cursor-grab">
+                          <GripVertical className="w-4 h-4" />
                         </div>
-                        <Switch 
-                          checked={section.enabled !== false} 
-                          onCheckedChange={() => handleToggleSection(selectedPage.id, section.id)} 
-                          className="data-[state=checked]:bg-rose-500"
-                        />
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isEnabled ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-400'}`}>
+                          {(() => {
+                            const IconComp = schema ? iconMap[schema.icon] || LayoutTemplate : LayoutTemplate;
+                            return <IconComp className="w-3.5 h-3.5" />;
+                          })()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-gray-900">{schema?.name || section.name}</p>
+                          <p className="text-[11px] text-gray-400 truncate">{schema?.description || ''}</p>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => handleMoveSectionUp(selectedPage.id, idx)}
+                            disabled={idx === 0}
+                            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-50 disabled:opacity-20"
+                          >
+                            <ChevronUp className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleMoveSectionDown(selectedPage.id, idx)}
+                            disabled={idx === selectedPage.sections.length - 1}
+                            className="p-1.5 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-50 disabled:opacity-20"
+                          >
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          </button>
+                          <div className="w-px h-4 bg-gray-100 mx-1" />
+                          <Switch
+                            checked={isEnabled}
+                            onCheckedChange={() => handleToggleSection(selectedPage.id, section.id)}
+                            className="data-[state=checked]:bg-gray-900 scale-90"
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 gap-1.5 rounded-lg border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 text-xs"
+                            onClick={() => openSectionEditor(section)}
+                          >
+                            <Pencil className="w-3 h-3" />
+                            Edit
+                          </Button>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
 
-        {/* Home Page Tab (Wix-Style Live Editor) */}
-        <TabsContent value="home" className="mt-6">
-          <div className="bg-white rounded-[48px] shadow-2xl border border-gray-100 overflow-hidden min-h-[800px] relative">
-            {/* Top Toolbar */}
-            <div className="bg-gray-50/80 backdrop-blur-md border-b border-gray-100 p-4 flex items-center justify-between sticky top-0 z-50">
-               <div className="flex items-center gap-4">
-                  <Badge className="bg-rose-500 text-white border-0">Modo Constructor Vivo</Badge>
-                  <p className="text-xs text-gray-400">Haz clic en cualquier texto para editarlo directamente</p>
-               </div>
-               <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="rounded-full gap-2">
-                    <Monitor className="w-4 h-4" />
-                    Vista Previa
-                  </Button>
-                  <Button className="bg-rose-500 hover:bg-rose-600 rounded-full px-6">Publicar</Button>
-               </div>
-            </div>
-
-            {/* The Live Canvas */}
-            <div className="p-0 space-y-0">
-              {(pages.find(p => p.id === 'home')?.sections || []).map((section, idx) => {
-                const isEnabled = section.enabled !== false;
-                if (!isEnabled) return null;
-
-                return (
-                  <div key={section.id} className="relative group border-b border-transparent hover:border-rose-300 transition-colors">
-                    {/* Inline Action Bar */}
-                    <div className="absolute top-4 right-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all z-40 bg-white/90 backdrop-blur-sm p-2 rounded-2xl shadow-xl border border-rose-100">
-                       <div className="flex flex-col -space-y-1 mr-2">
-                          <button onClick={() => handleMoveSectionUp('home', idx)} className="p-1 hover:bg-rose-50 rounded-lg text-gray-400 hover:text-rose-500"><ChevronUp className="w-4 h-4" /></button>
-                          <button onClick={() => handleMoveSectionDown('home', idx)} className="p-1 hover:bg-rose-50 rounded-lg text-gray-400 hover:text-rose-500"><ChevronDown className="w-4 h-4" /></button>
-                       </div>
-                       <Button variant="ghost" size="sm" className="h-8 text-xs font-bold text-gray-500 hover:text-rose-500">
-                         <Settings className="w-3 h-3 mr-2" />
-                         Ajustes
-                       </Button>
-                       <Button variant="ghost" size="sm" className="h-8 text-xs font-bold text-rose-500 hover:bg-rose-50">
-                         <Trash2 className="w-3 h-3" />
-                       </Button>
+                      {/* Mini Preview */}
+                      <div className="px-4 py-3 bg-gray-50/40">
+                        <SectionMiniPreview section={section} />
+                      </div>
                     </div>
-
-                    {/* Wix-Style Renderers */}
-                    {section.type === 'hero' && (
-                      <section 
-                        className="py-32 px-8 text-center relative overflow-hidden"
-                        style={{ backgroundColor: colors.background }}
-                      >
-                        <div className="max-w-4xl mx-auto space-y-8 relative z-10">
-                          <input 
-                            className="bg-transparent border-none text-center text-5xl md:text-7xl font-bold w-full focus:outline-none focus:ring-2 focus:ring-rose-200 rounded-xl transition-all p-2"
-                            defaultValue="Tu piel merece lo mejor"
-                            style={{ color: colors.text }}
-                          />
-                          <textarea 
-                            className="bg-transparent border-none text-center text-xl text-gray-500 w-full focus:outline-none focus:ring-2 focus:ring-rose-200 rounded-xl transition-all p-2 resize-none h-24"
-                            defaultValue="Expertos en waxing y cuidado de la piel. Resultados suaves y duraderos en un ambiente luxury."
-                          />
-                          <div className="flex justify-center gap-4">
-                             <div className="group relative">
-                                <Button size="lg" className="rounded-full px-12 py-8 text-xl shadow-2xl hover:scale-105 transition-transform" style={{ backgroundColor: colors.primary, color: colors.primaryForeground || '#ffffff' }}>
-                                  Agendar Cita
-                                </Button>
-                                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-black text-white text-[10px] px-2 py-1 rounded">Cambiar Texto</div>
-                             </div>
-                             <Button size="lg" variant="outline" className="rounded-full px-12 py-8 text-xl border-2" style={{ borderColor: colors.primary, color: colors.primary }}>
-                               Ver Servicios
-                             </Button>
-                          </div>
-                        </div>
-                        {/* Abstract Background Element */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-rose-50/50 rounded-full blur-[120px] -z-0" />
-                      </section>
-                    )}
-
-                    {section.type === 'grid' && (
-                      <section className="py-24 px-8 bg-white">
-                        <div className="max-w-7xl mx-auto">
-                          <div className="text-center mb-16 space-y-4">
-                             <input 
-                               className="bg-transparent border-none text-center text-4xl font-bold w-full focus:outline-none focus:ring-2 focus:ring-rose-200 rounded-xl p-2"
-                               defaultValue="Nuestros Servicios"
-                             />
-                             <p className="text-gray-400">Tratamientos personalizados para cada tipo de piel</p>
-                          </div>
-                          <div className="grid md:grid-cols-3 gap-8">
-                             {[1, 2, 3].map(i => (
-                               <div key={i} className="group/card relative bg-gray-50/50 rounded-[32px] p-8 border border-gray-100 hover:bg-white hover:shadow-2xl hover:-translate-y-2 transition-all cursor-pointer">
-                                  <div className="w-16 h-16 rounded-2xl bg-rose-100 flex items-center justify-center mb-6">
-                                     <Sparkles className="w-8 h-8 text-rose-500" />
-                                  </div>
-                                  <h4 className="text-xl font-bold mb-3">Servicio {i}</h4>
-                                  <p className="text-sm text-gray-500 mb-6">Descripción del servicio profesional de alta calidad...</p>
-                                  <div className="flex items-center justify-between">
-                                     <span className="font-bold text-rose-500">$45.00</span>
-                                     <Button variant="ghost" size="sm" className="rounded-full text-xs">Editar</Button>
-                                  </div>
-                               </div>
-                             ))}
-                             <div className="border-2 border-dashed border-gray-200 rounded-[32px] flex flex-col items-center justify-center p-8 hover:bg-rose-50 transition-colors group cursor-pointer">
-                                <div className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                   <Plus className="w-6 h-6 text-rose-300" />
-                                </div>
-                                <span className="text-sm font-bold text-gray-400">Añadir Servicio</span>
-                             </div>
-                          </div>
-                        </div>
-                      </section>
-                    )}
-
-                    {section.type === 'list' && (
-                       <section className="py-24 px-8" style={{ backgroundColor: colors.surface }}>
-                          <div className="max-w-4xl mx-auto text-center">
-                             <h3 className="text-3xl font-bold mb-12">Lo que dicen nuestras clientas</h3>
-                             <div className="bg-white p-12 rounded-[40px] shadow-xl border border-gray-100">
-                                <div className="flex justify-center gap-1 mb-6">
-                                   {[1,2,3,4,5].map(s => <Star key={s} className="w-6 h-6 fill-rose-400 text-rose-400" />)}
-                                </div>
-                                <p className="text-xl italic text-gray-600 mb-8 leading-relaxed">
-                                  "La mejor experiencia de depilación que he tenido. El lugar es hermoso y el personal es increíblemente profesional."
-                                </p>
-                                <div className="flex items-center justify-center gap-4">
-                                   <div className="w-12 h-12 rounded-full bg-rose-200" />
-                                   <div className="text-left">
-                                      <p className="font-bold">María García</p>
-                                      <p className="text-xs text-gray-400">Clienta Frecuente</p>
-                                   </div>
-                                </div>
-                             </div>
-                          </div>
-                       </section>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* Add Section Button */}
-              <div className="py-12 flex justify-center bg-gray-50/50 border-t border-dashed border-gray-200">
-                 <Button className="bg-white hover:bg-rose-50 text-rose-500 border-2 border-rose-100 shadow-xl rounded-full px-8 py-6 h-auto font-bold gap-3 group">
-                    <div className="w-8 h-8 rounded-full bg-rose-500 text-white flex items-center justify-center group-hover:rotate-90 transition-transform">
-                       <Plus className="w-5 h-5" />
-                    </div>
-                    Añadir Nueva Sección
-                 </Button>
+                  );
+                })}
               </div>
             </div>
           </div>
-        </TabsContent>
+        )}
 
-        <TabsContent value="appointments" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Configuración de Citas</CardTitle>
-              <CardDescription>Configura los horarios y servicios disponibles para agendar.</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[400px] flex items-center justify-center border-2 border-dashed rounded-xl m-6">
-              <div className="text-center">
-                <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">Módulo de citas en desarrollo</p>
+        {/* APPOINTMENTS / BOOKING STYLE TAB */}
+        {activeTab === 'appointments' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-bold text-gray-900">Booking Form Style</h2>
+                <p className="text-sm text-gray-400">Choose the look and feel of your appointment booking flow.</p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              <Link href="/book" target="_blank">
+                <Button variant="outline" className="gap-2 rounded-lg border-gray-200 text-gray-600 hover:bg-gray-50 text-sm h-8">
+                  <Eye className="w-4 h-4" />
+                  Live Preview
+                </Button>
+              </Link>
+            </div>
 
-        <TabsContent value="appearance" className="mt-6">
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card className="border border-gray-200 shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Palette className="w-5 h-5 text-rose-500" />
-                  Colores de Marca
-                </CardTitle>
-                <CardDescription>Define los colores principales de tu sitio web</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium">Color Primario</Label>
-                      <p className="text-xs text-gray-500">Botones y elementos destacados</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="relative">
-                        <Input 
-                          type="color" 
-                          value={colors.primary} 
-                          onChange={(e) => setColors({ ...colors, primary: e.target.value })}
-                          className="w-12 h-12 p-1 rounded-lg cursor-pointer bg-white"
-                        />
-                      </div>
-                      <Input 
-                        type="text" 
-                        value={colors.primary} 
-                        onChange={(e) => setColors({ ...colors, primary: e.target.value })}
-                        className="w-24 font-mono text-xs uppercase"
-                        maxLength={7}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-sm font-medium">Fondo de Página</Label>
-                      <p className="text-xs text-gray-500">Color base del sitio</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="relative">
-                        <Input 
-                          type="color" 
-                          value={colors.background} 
-                          onChange={(e) => setColors({ ...colors, background: e.target.value })}
-                          className="w-12 h-12 p-1 rounded-lg cursor-pointer bg-white"
-                        />
-                      </div>
-                      <Input 
-                        type="text" 
-                        value={colors.background} 
-                        onChange={(e) => setColors({ ...colors, background: e.target.value })}
-                        className="w-24 font-mono text-xs uppercase"
-                        maxLength={7}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-6 border-t border-gray-100">
-                  <h4 className="text-sm font-medium mb-4">Paletas Sugeridas</h4>
-                  <div className="flex gap-3">
-                    {[
-                      { p: '#f43f5e', b: '#ffffff' },
-                      { p: '#8b5cf6', b: '#f5f3ff' },
-                      { p: '#10b981', b: '#f0fdf4' },
-                      { p: '#f59e0b', b: '#fffbeb' },
-                    ].map((palette, i) => (
-                      <button 
-                        key={i}
-                        className="w-8 h-8 rounded-full border border-gray-200 p-0.5"
-                        onClick={() => setColors({ ...colors, primary: palette.p, background: palette.b })}
-                      >
-                        <div className="w-full h-full rounded-full flex overflow-hidden">
-                          <div className="w-1/2 h-full" style={{ backgroundColor: palette.p }} />
-                          <div className="w-1/2 h-full" style={{ backgroundColor: palette.b }} />
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border border-gray-200 shadow-sm bg-gray-50/50">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold">Previsualización</CardTitle>
-                <CardDescription>Prueba cómo se ven tus colores</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center py-12 space-y-8">
-                <div 
-                  className="w-full max-w-[280px] p-8 rounded-3xl shadow-xl space-y-4"
-                  style={{ backgroundColor: colors.background }}
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {bookingStyles.map((style) => (
+                <button
+                  key={style.id}
+                  onClick={() => setSelectedBookingStyle(style.id)}
+                  className={`text-left p-4 border rounded-xl transition-all ${
+                    selectedBookingStyle === style.id
+                      ? 'border-gray-900 ring-1 ring-gray-900 shadow-sm'
+                      : 'border-gray-200 hover:border-gray-300'
+                  } bg-white`}
                 >
-                  <div className="w-12 h-12 rounded-2xl" style={{ backgroundColor: colors.primary }} />
-                  <div className="space-y-2">
-                    <div className="h-4 w-3/4 rounded bg-gray-200" />
-                    <div className="h-4 w-1/2 rounded bg-gray-100" />
+                  <div className="aspect-video rounded-lg overflow-hidden border border-gray-100 mb-3 bg-white">
+                    {style.preview}
                   </div>
-                  <Button className="w-full rounded-full" style={{ backgroundColor: colors.primary }}>
-                    Botón de Ejemplo
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-gray-900 text-sm">{style.name}</h3>
+                    {selectedBookingStyle === style.id && (
+                      <Check className="w-4 h-4 text-gray-900" />
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400">{style.description}</p>
+                </button>
+              ))}
+            </div>
 
-      {/* Add Page Dialog */}
+            {/* Live preview iframe */}
+            <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <h3 className="font-semibold text-gray-900 text-sm">Live Preview</h3>
+                <div className="flex items-center gap-2">
+                  <Monitor className="w-4 h-4 text-gray-400" />
+                  <span className="text-xs text-gray-400">Desktop</span>
+                </div>
+              </div>
+              <div className="p-4 bg-gray-50">
+                <iframe
+                  src="/book"
+                  className="w-full h-[500px] rounded-lg border border-gray-200 bg-white"
+                  title="Booking Preview"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* APPEARANCE TAB */}
+        {activeTab === 'appearance' && (
+          <div className="max-w-2xl">
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h3 className="flex items-center gap-2 text-base font-bold text-gray-900 mb-1">
+                <Palette className="w-5 h-5" />
+                Current Theme
+              </h3>
+              <p className="text-sm text-gray-400 mb-6">
+                The selected theme applies to all public pages of your site.
+              </p>
+              <div className="flex items-center justify-between p-5 bg-gray-50 rounded-xl border border-gray-100">
+                <div>
+                  <p className="font-semibold text-gray-900">Professional Blue</p>
+                  <p className="text-sm text-gray-400">Clean, modern, and elegant</p>
+                </div>
+                <Link href="/admin/settings/theme">
+                  <Button variant="outline" className="gap-2 rounded-lg border-gray-200 hover:bg-white text-sm">
+                    <Palette className="w-4 h-4" />
+                    Change Theme
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* SECTION EDITOR SHEET (Wix-style) */}
+      <Sheet open={editorOpen} onOpenChange={setEditorOpen}>
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto bg-white border-l border-gray-200 p-0">
+          {editingSection && SECTION_SCHEMA[editingSection.id] && (
+            <>
+              <SheetHeader className="px-6 py-5 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-gray-900 text-white flex items-center justify-center">
+                    {(() => {
+                      const IconComp = iconMap[SECTION_SCHEMA[editingSection.id].icon] || LayoutTemplate;
+                      return <IconComp className="w-4 h-4" />;
+                    })()}
+                  </div>
+                  <div>
+                    <SheetTitle className="text-gray-900 text-base">Edit {SECTION_SCHEMA[editingSection.id].name}</SheetTitle>
+                    <SheetDescription className="text-gray-400 text-xs">
+                      {SECTION_SCHEMA[editingSection.id].description}
+                    </SheetDescription>
+                  </div>
+                </div>
+              </SheetHeader>
+
+              <div className="px-6 py-6 space-y-5">
+                {SECTION_SCHEMA[editingSection.id].fields.map((field) => (
+                  <div key={field.key} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <div className="text-gray-400">{getFieldIcon(field.type)}</div>
+                      <Label className="text-sm font-semibold text-gray-900">{field.label}</Label>
+                    </div>
+
+                    {field.type === 'textarea' && (
+                      <Textarea
+                        value={editDraft[field.key] || ''}
+                        onChange={(e) => setEditDraft((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                        placeholder={field.placeholder}
+                        rows={3}
+                        className="bg-white border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg text-sm resize-none"
+                      />
+                    )}
+
+                    {(field.type === 'text' || field.type === 'url') && (
+                      <Input
+                        value={editDraft[field.key] || ''}
+                        onChange={(e) => setEditDraft((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                        placeholder={field.placeholder}
+                        className="bg-white border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg text-sm"
+                      />
+                    )}
+
+                    {field.type === 'image' && (
+                      <div className="space-y-3">
+                        <Input
+                          value={editDraft[field.key] || ''}
+                          onChange={(e) => setEditDraft((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                          placeholder={field.placeholder}
+                          className="bg-white border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg text-sm"
+                        />
+                        {editDraft[field.key] && (
+                          <div className="relative h-32 rounded-lg overflow-hidden border border-gray-200 bg-gray-50">
+                            <img src={editDraft[field.key]} alt="Preview" className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                        <div>
+                          <Label className="text-xs text-gray-400 mb-1.5 block">Or upload an image</Label>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleImageUpload(field.key, e)}
+                            className="bg-white border-gray-200 rounded-lg text-sm file:text-gray-600 file:font-medium"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <SheetFooter className="px-6 py-5 border-t border-gray-100 flex-row gap-3">
+                <SheetClose asChild>
+                  <Button variant="outline" className="flex-1 rounded-lg border-gray-200 text-gray-600 hover:bg-gray-50">
+                    Cancel
+                  </Button>
+                </SheetClose>
+                <Button
+                  onClick={saveSectionContent}
+                  className="flex-1 gap-2 rounded-lg bg-gray-900 hover:bg-black text-white"
+                >
+                  <Save className="w-4 h-4" />
+                  Save Changes
+                </Button>
+              </SheetFooter>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* ADD PAGE DIALOG */}
       <Dialog open={showAddPageDialog} onOpenChange={setShowAddPageDialog}>
-        <DialogContent>
+        <DialogContent className="bg-white border border-gray-200 rounded-xl">
           <DialogHeader>
-            <DialogTitle>Agregar Nueva Página</DialogTitle>
-            <DialogDescription>
-              Crea una nueva página para tu sitio web
-            </DialogDescription>
+            <DialogTitle className="text-gray-900">Add New Page</DialogTitle>
+            <DialogDescription className="text-gray-400">Create a new page for your website.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label>Nombre de la Página</Label>
+              <Label className="text-sm font-medium text-gray-900">Page Name</Label>
               <Input
                 value={newPageName}
                 onChange={(e) => {
@@ -698,30 +1141,31 @@ export default function WebsitePagesPage() {
                     setNewPageSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'));
                   }
                 }}
-                placeholder="Ej: Blog"
+                placeholder="e.g. Blog"
+                className="mt-1.5 bg-white border-gray-200 focus:border-gray-400 rounded-lg"
               />
             </div>
             <div>
-              <Label>URL Slug</Label>
+              <Label className="text-sm font-medium text-gray-900">URL Slug</Label>
               <Input
                 value={newPageSlug}
                 onChange={(e) => setNewPageSlug(e.target.value)}
-                placeholder="ej: blog"
+                placeholder="e.g. blog"
+                className="mt-1.5 bg-white border-gray-200 focus:border-gray-400 rounded-lg"
               />
-              <p className="text-xs text-gray-500 mt-1">Esta será la URL: /{newPageSlug}</p>
+              <p className="text-xs text-gray-400 mt-1.5">This will be the URL: /{newPageSlug}</p>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddPageDialog(false)}>
-              Cancelar
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowAddPageDialog(false)} className="rounded-lg border-gray-200">
+              Cancel
             </Button>
-            <Button onClick={handleAddPage} className="bg-rose-500 hover:bg-rose-600">
-              Crear Página
+            <Button onClick={handleAddPage} className="rounded-lg bg-gray-900 hover:bg-black text-white">
+              Create Page
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }

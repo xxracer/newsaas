@@ -1,221 +1,175 @@
-# WaxingSetudios 🌸
+# BeautySaaS
 
-> Plataforma SaaS multi-tenant para estudios de waxing de lujo
+> Multi-tenant booking SaaS for beauty, wellness, and grooming studios
 
-## 🎯 Visión
+## Overview
 
-WaxingSetudios es una plataforma completa que permite a estudios de waxing gestionar su negocio con una estética luxury única. Cada estudio puede elegir entre **5 diseños premium** y conectar su **propio dominio**, **Stripe para pagos**, y gestionar **citas y servicios**.
+BeautySaaS is a complete platform that lets independent studios (waxing, barber, nails, hair, tattoo, massage, skincare, brow & lash, tanning) manage their business, website, and online bookings. Each studio gets its own customizable website with a Wix-style section editor, a multi-step booking flow, and an admin dashboard.
 
-## ✨ Características Principales
+## Features
 
-### Para Dueños de Estudios
-- 🔐 **Login tipo Google** con Firebase Authentication
-- 🎨 **5 Diseños Luxury** seleccionables:
-  - **Rose Gold Elegance** - Dorado rosado, mármol, tipografía serif
-  - **Midnight Luxe** - Negro mate + oro, minimalista
-  - **Blanc Pur** - Blanco hueso + champagne, spa-like
-  - **Velvet Berry** - Borgoña profundo + cobre
-  - **Nude Minimalist** - Tonos nude, líneas limpias
-- 🌐 **Dominio personalizado** (tudominio.com)
-- 💳 **Stripe Connect** integrado para recibir pagos
-- 📅 Gestión de citas y calendario
-- 💝 Gift cards digitales
-- 📊 Dashboard con métricas clave
+### For Studio Owners
+- **Instant setup** — choose a business type, get pre-loaded demo services and pages
+- **Wix-style website editor** — add, reorder, and edit sections per page (hero, services grid, testimonials, team, gallery, gift cards, CTA, contact)
+- **Multi-step booking flow** — clients select services, pick a date/time, enter their info, and confirm
+- **Service management** — create categories and services with pricing, duration, and images
+- **4 booking styles** — Modern Minimal, Classic Dark, Clean White, Luxury Gold
+- **Account deletion** — full data removal available in Settings
+- **Demo mode** — works without any database or backend services using localStorage
 
-### Para Clientes Finales
-- Booking online 24/7
-- Recordatorios automáticos
-- Compra de gift cards
-- Historial de citas
+### For Clients
+- Browse services by category
+- Select multiple services with real-time total
+- Pick date and time from an interactive calendar
+- Enter contact info and receive instant confirmation
+- View a professional, themed studio website
 
-## 🏗️ Arquitectura
+## Supported Business Types
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    WaxingSetudios Platform                   │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │  Studio A    │  │  Studio B    │  │  Studio C    │      │
-│  │  rose-gold   │  │  midnight    │  │  nude        │      │
-│  │  studioA.com │  │  studioB.com │  │  studioC.com │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │              Firebase (waxingsetudios)                │   │
-│  │  ├── studios/                                         │   │
-│  │  ├── users/                                           │   │
-│  │  ├── appointments/                                    │   │
-│  │  ├── services/                                        │   │
-│  │  └── payments/                                        │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │              Stripe Connect                           │   │
-│  │  Studio A → stripe_acct_A                             │   │
-│  │  Studio B → stripe_acct_B                             │   │
-│  │  Studio C → stripe_acct_C                             │   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-```
+| Type | Demo Services |
+|------|--------------|
+| Waxing | Body zones, face waxing, packages |
+| Barber | Cuts, shaves, beard grooming |
+| Nails | Manicure, pedicure, acrylics, art |
+| Hair | Cuts, color, styling, treatments |
+| Tattoo | Small, medium, large, cover-ups |
+| Massage | Swedish, deep tissue, hot stone |
+| Skincare | Facials, peels, microneedling |
+| Brow & Lash | Microblading, lifts, extensions |
+| Tanning | Spray tan, UV beds, packages |
 
-## 🚀 Inicio Rápido
+## Tech Stack
 
-### Prerrequisitos
-- Node.js 18+
-- Firebase account
-- Stripe account (para pagos)
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Database**: Prisma + SQLite (optional — demo mode works without it)
+- **Auth**: NextAuth.js (credentials + Google OAuth)
+- **UI**: Tailwind CSS + shadcn/ui
+- **Icons**: Lucide React
+- **Payments**: Stripe (optional)
+- **Email**: Resend (optional)
+- **SMS**: Twilio (optional)
 
-### Instalación
-
-1. **Clonar el repositorio**
-```bash
-git clone <repo-url>
-cd waxingsetudios
-```
-
-2. **Instalar dependencias**
-```bash
-npm install
-```
-
-3. **Configurar variables de entorno**
-
-Copia `.env.local.example` a `.env.local`:
-```bash
-cp .env.local.example .env.local
-```
-
-Llena con tus credenciales de Firebase (ver `SETUP.md` para detalles):
-```env
-# Firebase
-NEXT_PUBLIC_FIREBASE_API_KEY=...
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
-NEXT_PUBLIC_FIREBASE_APP_ID=...
-
-# Stripe
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-
-# App
-NEXT_PUBLIC_SITE_URL=http://localhost:9002
-```
-
-4. **Ejecutar en desarrollo**
-```bash
-npm run dev
-```
-
-Visita `http://localhost:9002`
-
-## 📁 Estructura del Proyecto
+## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── (main)/              # Páginas públicas del estudio
-│   ├── admin/               # Dashboard de administración
+│   ├── admin/               # Admin dashboard
+│   │   ├── dashboard/
+│   │   ├── services/
+│   │   ├── website/           # Wix-style section editor
+│   │   └── settings/
 │   ├── api/                 # API routes
-│   │   ├── auth/            # Autenticación
-│   │   ├── studio/          # Lookup de estudios
-│   │   ├── studios/         # CRUD de estudios
-│   │   └── stripe/          # Stripe Connect & pagos
-│   ├── auth/                # Login/Signup
-│   ├── studio/              # Setup del estudio
-│   └── book/                # Booking flow
+│   ├── studio/[domain]/[page]/  # Public studio pages
+│   ├── book/                # Booking flow
+│   └── auth/                # Login / signup
 ├── components/
-│   ├── admin/               # Componentes del dashboard
-│   ├── booking/             # Componentes de booking
-│   ├── layout/              # Layout components
-│   ├── providers/           # Firebase Auth, Theme
-│   └── ui/                  # Shadcn UI components
+│   ├── admin/               # Admin UI components
+│   ├── booking/             # Booking flow steps
+│   └── ui/                  # shadcn/ui components
 ├── lib/
-│   ├── firebase.ts          # Firebase config & helpers
-│   └── utils.ts             # Utility functions
-└── types/
-    └── index.ts             # TypeScript types
+│   ├── demo-data.ts         # Demo services & categories for all 9 types
+│   └── utils.ts
+└── prisma/
+    ├── schema.prisma
+    └── seed.ts
 ```
 
-## 🎨 Los 5 Temas Luxury
+## Quick Start
 
-| Tema | Colores | Vibe |
-|------|---------|------|
-| **Rose Gold** | `#B76E79`, `#E8C4C4`, `#D4AF37` | Femenino, elegante |
-| **Midnight Luxe** | `#1A1A1A`, `#2D2D2D`, `#D4AF37` | Ultra-lujoso, minimalista |
-| **Blanc Pur** | `#F5F0EB`, `#E8DDD5`, `#C9B037` | Spa-like, relajante |
-| **Velvet Berry** | `#4A0E1E`, `#7B1E3A`, `#B87333` | Sensual, elegante |
-| **Nude Minimal** | `#D4B5A0`, `#E8D5C4`, `#A68B7C` | Limpio, moderno |
+### Prerequisites
+- Node.js 18+
+- npm or yarn
 
-## 💳 Stripe Connect Flow
-
-1. Dueño de estudio se registra
-2. Va a Settings → Billing
-3. Click en "Conectar Stripe"
-4. Completa onboarding en Stripe
-5. Puede recibir pagos inmediatamente
-
-Los pagos van directamente a la cuenta del estudio, menos una comisión de plataforma (configurable).
-
-## 🔥 Firebase Structure
-
-Todos los datos viven bajo `waxingsetudios/` para compartir Firebase con otros proyectos:
-
-```
-waxingsetudios/
-├── studios/{studioId}
-│   ├── businessName
-│   ├── domain (custom domain)
-│   ├── theme (selected luxury theme)
-│   ├── colors (theme colors)
-│   ├── stripeAccountId
-│   └── ...
-├── users/{userId}
-│   ├── email
-│   ├── studioId (reference)
-│   ├── role (CLIENT | ADMIN | SUPER_ADMIN)
-│   └── ...
-├── appointments/{appointmentId}
-│   ├── studioId
-│   ├── clientId
-│   ├── dateTime
-│   ├── services
-│   └── status
-└── ...
-```
-
-## 📋 Comandos Disponibles
+### Installation
 
 ```bash
-npm run dev         # Desarrollo (http://localhost:9002)
-npm run build       # Build de producción
-npm start           # Start production server
-npm run typecheck   # TypeScript type checking
-npm run lint        # ESLint
+npm install
 ```
 
-## 📖 Documentación Adicional
+### Run in demo mode (no database needed)
 
-- [`SETUP.md`](./SETUP.md) - Guía completa de configuración de Firebase y Stripe
-- [Firebase Console](https://console.firebase.google.com/)
-- [Stripe Dashboard](https://dashboard.stripe.com/)
+```bash
+npm run dev
+```
 
-## 🛠️ Tech Stack
+Open [http://localhost:9002](http://localhost:9002)
 
-- **Framework**: Next.js 15
-- **Lenguaje**: TypeScript
-- **Auth/DB**: Firebase (Auth + Firestore)
-- **Pagos**: Stripe Connect
-- **UI**: Shadcn/ui + Tailwind CSS
-- **Iconos**: Lucide React
+### Run with database
 
-## 📄 License
+```bash
+# 1. Copy environment file
+cp .env.example .env.local
+
+# 2. Edit .env.local and uncomment DATABASE_URL
+# DATABASE_URL="file:./dev.db"
+
+# 3. Push schema and seed
+npm run db:push
+npm run db:seed
+
+# 4. Start dev server
+npm run dev
+```
+
+## Environment Variables
+
+Copy `.env.example` to `.env.local`. **All variables are optional for demo mode.**
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | No | Prisma database URL (SQLite example included) |
+| `NEXTAUTH_SECRET` | No | JWT secret for NextAuth |
+| `NEXTAUTH_URL` | No | App URL (default: http://localhost:9002) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | No | Google OAuth |
+| `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY` | No | Stripe payments |
+| `RESEND_API_KEY` | No | Transactional email |
+| `TWILIO_ACCOUNT_SID` / `TWILIO_AUTH_TOKEN` / `TWILIO_PHONE_NUMBER` | No | SMS notifications |
+
+## Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server (Turbopack, port 9002) |
+| `npm run build` | Production build (runs `prisma generate` first) |
+| `npm run start` | Start production server |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript type checking |
+| `npm run db:push` | Push Prisma schema to database |
+| `npm run db:seed` | Seed database with demo data |
+| `npm run db:studio` | Open Prisma Studio |
+
+## Deployment (Vercel)
+
+1. **Push to GitHub**
+   ```bash
+   git add .
+   git commit -m "ready for vercel deploy"
+   git push origin main
+   ```
+
+2. **Import on Vercel**
+   - Go to [vercel.com](https://vercel.com) → Add New Project
+   - Import your GitHub repository
+
+3. **Configure build settings**
+   - Framework preset: Next.js
+   - Build command: `prisma generate && next build`
+   - Output directory: default
+
+4. **Environment variables**
+   - For **demo mode**: add none, or just `NEXTAUTH_SECRET` with any random string
+   - For **full mode**: copy variables from `.env.example`
+
+5. **Deploy**
+   - Click Deploy
+   - Your app will be live on `https://your-project.vercel.app`
+
+## License
 
 MIT
 
 ---
 
-**WaxingSetudios** - La plataforma premium para estudios de waxing exclusivos 🌸
+**BeautySaaS** — Booking and website platform for modern studios.

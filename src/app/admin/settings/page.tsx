@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import {
   Store,
   Clock,
@@ -26,7 +26,9 @@ import {
   MessageSquare,
   Smartphone,
   ChevronRight,
-  Calendar
+  Calendar,
+  AlertTriangle,
+  Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -100,6 +102,8 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
   const [isLoading, setIsLoading] = useState(false);
   const [showSavedDialog, setShowSavedDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
 
   const [settings, setSettings] = useState<StudioSettings>({
     businessName: '',
@@ -201,6 +205,34 @@ export default function SettingsPage() {
 
   const updateNotifications = (field: keyof NotificationSettings, value: boolean) => {
     setNotifications(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleDeleteAccount = () => {
+    if (deleteConfirm !== settings.businessName) return;
+
+    // Clear all localStorage data for this studio
+    if (user?.studioId) {
+      localStorage.removeItem('mock_studio_' + user.studioId);
+      localStorage.removeItem('mock_services_' + user.studioId);
+      localStorage.removeItem('mock_products_' + user.studioId);
+      localStorage.removeItem('mock_staff_' + user.studioId);
+      localStorage.removeItem('mock_appointments_' + user.studioId);
+      localStorage.removeItem('mock_clients_' + user.studioId);
+      localStorage.removeItem('mock_giftcards_' + user.studioId);
+      localStorage.removeItem('mock_user');
+      localStorage.removeItem('mock_user_studio_id');
+      localStorage.removeItem('waxing-studio-theme');
+    }
+
+    // Clear all mock_studio_ entries
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('mock_')) {
+        localStorage.removeItem(key);
+      }
+    });
+
+    setShowDeleteDialog(false);
+    router.push('/');
   };
 
   return (
@@ -342,8 +374,8 @@ export default function SettingsPage() {
               <Card className="cursor-pointer hover:shadow-md transition-shadow">
                 <CardContent className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center">
-                      <Palette className="w-5 h-5 text-pink-600" />
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                      <Palette className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
                       <p className="font-medium">Diseño y Tema</p>
@@ -591,8 +623,8 @@ export default function SettingsPage() {
             <CardContent>
               <div className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center">
-                    <MessageSquare className="w-5 h-5 text-pink-600" />
+                  <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <MessageSquare className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
                     <p className="font-medium">Emails de Marketing</p>
@@ -669,10 +701,20 @@ export default function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between p-4 border border-red-200 rounded-lg bg-red-50">
                 <div>
-                  <p className="font-medium text-red-900">Eliminar Estudio</p>
-                  <p className="text-sm text-red-600">Esta acción no se puede deshacer</p>
+                  <p className="font-medium text-red-900">Eliminar Cuenta</p>
+                  <p className="text-sm text-red-600">Esta acción eliminará tu estudio y todos tus datos permanentemente. No se puede deshacer.</p>
                 </div>
-                <Button variant="destructive">Eliminar</Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    setDeleteConfirm('');
+                    setShowDeleteDialog(true);
+                  }}
+                  className="gap-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Eliminar
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -684,7 +726,7 @@ export default function SettingsPage() {
         <Button
           onClick={handleSave}
           disabled={isLoading}
-          className="gap-2 bg-gradient-to-r from-pink-600 to-rose-600 hover:opacity-90 shadow-lg"
+          className="gap-2 bg-blue-600 hover:bg-blue-700 shadow-lg"
           size="lg"
         >
           {isLoading ? (
@@ -715,6 +757,48 @@ export default function SettingsPage() {
               </DialogDescription>
             </div>
           </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Account Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-8 h-8 text-red-600" />
+              </div>
+              <DialogTitle className="text-red-900">¿Eliminar tu cuenta?</DialogTitle>
+              <DialogDescription className="text-red-600">
+                Esta acción es irreversible. Todos tus datos, servicios, citas y configuraciones serán eliminados permanentemente.
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-gray-600">
+              Para confirmar, escribe el nombre de tu estudio: <strong>{settings.businessName}</strong>
+            </p>
+            <Input
+              value={deleteConfirm}
+              onChange={(e) => setDeleteConfirm(e.target.value)}
+              placeholder="Escribe el nombre de tu estudio"
+              className="border-red-200 focus:border-red-400 focus:ring-red-400"
+            />
+          </div>
+          <DialogFooter className="gap-3">
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="flex-1">
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirm !== settings.businessName}
+              className="flex-1 gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Eliminar Cuenta
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

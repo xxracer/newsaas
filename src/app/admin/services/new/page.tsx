@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +17,7 @@ interface Category {
   id: string;
   name: string;
   gender: string;
+  businessType: string;
 }
 
 interface ServiceFormData {
@@ -34,11 +35,25 @@ interface ServiceFormData {
   sortOrder: string;
 }
 
+const businessTypeLabels: Record<string, string> = {
+  waxing: 'Waxing',
+  barber: 'Barber Shop',
+  nails: 'Nail Salon',
+  hair: 'Hair Salon',
+  tattoo: 'Tattoo Studio',
+  massage: 'Massage Spa',
+  skincare: 'Skin Care',
+  'brow-lash': 'Brow & Lash',
+  tanning: 'Tanning Salon',
+  default: 'Beauty',
+};
+
 export default function NewServicePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [businessType, setBusinessType] = useState('waxing');
   const [formData, setFormData] = useState<ServiceFormData>({
     name: '',
     slug: '',
@@ -54,19 +69,42 @@ export default function NewServicePage() {
     sortOrder: '0',
   });
 
-  // Fetch categories on mount
-  useState(() => {
-    fetch('/api/services/categories')
+  useEffect(() => {
+    const storedUser = localStorage.getItem('mock_user');
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user?.studioId) {
+          const studioData = localStorage.getItem('mock_studio_' + user.studioId);
+          if (studioData) {
+            const studio = JSON.parse(studioData);
+            if (studio.businessType) {
+              setBusinessType(studio.businessType);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error reading studio data:', e);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    fetch(`/api/services/categories?businessType=${encodeURIComponent(businessType)}`)
       .then((res) => res.ok ? res.json() : [])
-      .then(setCategories)
+      .then((data) => {
+        setCategories(data);
+        if (data.length > 0 && !formData.categoryId) {
+          setFormData((prev) => ({ ...prev, categoryId: data[0].id }));
+        }
+      })
       .catch(() => setCategories([]));
-  });
+  }, [businessType]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Auto-generate slug from name
     if (name === 'name') {
       const slug = value
         .toLowerCase()
@@ -108,6 +146,8 @@ export default function NewServicePage() {
     }
   };
 
+  const label = businessTypeLabels[businessType] || businessTypeLabels.default;
+
   return (
     <div className="p-6 lg:p-8 max-w-2xl">
       <div className="mb-8">
@@ -118,7 +158,7 @@ export default function NewServicePage() {
           </Link>
         </Button>
         <h1 className="text-2xl font-bold text-gray-900">Add New Service</h1>
-        <p className="text-gray-500">Create a new waxing service</p>
+        <p className="text-gray-500">Create a new {label.toLowerCase()} service</p>
       </div>
 
       <Card>
@@ -139,7 +179,7 @@ export default function NewServicePage() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="e.g., Brazilian Wax"
+                  placeholder={`e.g., ${businessType === 'barber' ? 'Classic Cut' : businessType === 'nails' ? 'Gel Manicure' : 'Brazilian Wax'}`}
                   required
                 />
               </div>
@@ -151,7 +191,7 @@ export default function NewServicePage() {
                   name="slug"
                   value={formData.slug}
                   onChange={handleChange}
-                  placeholder="brazilian-wax"
+                  placeholder="service-slug"
                   required
                 />
               </div>
@@ -297,7 +337,7 @@ export default function NewServicePage() {
               <Button type="button" variant="outline" onClick={() => router.back()}>
                 Cancel
               </Button>
-              <Button type="submit" className="bg-pink-600 hover:bg-pink-700" disabled={isLoading}>
+              <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

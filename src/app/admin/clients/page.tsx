@@ -244,8 +244,8 @@ export default function ClientsPage() {
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
-                    <span className="text-pink-600 font-semibold">
+                  <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
+                    <span className="text-blue-600 font-semibold">
                       {client.firstName[0]}{client.lastName[0]}
                     </span>
                   </div>
@@ -305,8 +305,8 @@ export default function ClientsPage() {
             <>
               <DialogHeader>
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-100 to-rose-100 flex items-center justify-center">
-                    <span className="text-pink-600 font-bold text-xl">
+                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                    <span className="text-blue-600 font-bold text-xl">
                       {selectedClient.firstName[0]}{selectedClient.lastName[0]}
                     </span>
                   </div>

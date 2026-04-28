@@ -71,6 +71,7 @@ model Category {
   sortOrder   Int      @default(0)
   gender      String
   isActive    Boolean  @default(true)
+  businessType String   @default("waxing") // waxing, barber, nails, etc.
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
