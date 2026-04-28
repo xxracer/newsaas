@@ -1,0 +1,15 @@
+.claude
+.env.local
+.env.development
+node_modules
+prisma/dev.db
+prisma/dev.db-journal
+*.log
+.vercel
+.vscode
+.idea
+*.test.ts
+*.test.tsx
+coverage
+dist
+out
